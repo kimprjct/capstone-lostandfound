@@ -14,8 +14,18 @@ class Organization extends Model
         'address',
         'logo',
         'color_theme',
-        'sidebar_bg'
+        'sidebar_bg',
+  
     ];
+
+    // If you want the API to include the logo_url attribute
+    protected $appends = ['logo_url'];
+
+    // Method to get the logo URL
+    public function getLogoUrlAttribute()
+    {
+        return $this->logo ? asset('storage/' . $this->logo) : null;
+    }
 
     public function users()
     {

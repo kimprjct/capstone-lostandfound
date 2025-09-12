@@ -24,6 +24,13 @@ class FoundItem extends Model
     protected $casts = [
         'date_found' => 'date',
     ];
+    
+    protected $appends = ['image_url'];
+    
+    public function getImageUrlAttribute()
+    {
+        return $this->image ? asset('storage/' . $this->image) : null;
+    }
 
     public function user()
     {

@@ -15,15 +15,18 @@ class AdminUserSeeder extends Seeder
      */
     public function run()
     {
-        User::create([
-            'first_name' => 'Admin',
-            'middle_name' => '',
-            'last_name' => 'User',
-            'address' => 'Admin Address',
-            'phone_number' => '1234567890',
-            'email' => 'admin@lostfound.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin'
-        ]);
+        // Check if admin user already exists
+        if (!User::where('email', 'admin@lostfound.com')->exists()) {
+            User::create([
+                'first_name' => 'Admin',
+                'middle_name' => '',
+                'last_name' => 'User',
+                'address' => 'Admin Address',
+                'phone_number' => '1234567890',
+                'email' => 'admin@lostfound.com',
+                'password' => Hash::make('password'),
+                'role' => 'admin'
+            ]);
+        }
     }
 }
