@@ -40,6 +40,12 @@ class DashboardController extends Controller
                   ->orWhereIn('lost_item_id', $lostItemIds);
         })->where('status', 'pending')->count();
     
+        // Count approved claims (claimed items) for both found and lost items
+        $claimedItemsCount = Claim::where(function($query) use ($foundItemIds, $lostItemIds) {
+            $query->whereIn('found_item_id', $foundItemIds)
+                  ->orWhereIn('lost_item_id', $lostItemIds);
+        })->where('status', 'approved')->count();
+    
         // Unclaimed Lost Items
             $unclaimedLost = \App\Models\LostItem::where('organization_id', $organizationId)
             ->whereDoesntHave('claims', function ($query) {
@@ -84,10 +90,11 @@ class DashboardController extends Controller
             'lostItemsCount',
             'foundItemsCount',
             'pendingClaimsCount',
+            'claimedItemsCount',
             'recentLostItems',
             'recentFoundItems',
             'recentClaims',
-            'unclaimedItemsCount' // 👈 Added here
+            'unclaimedItemsCount'
         ));
     }
     

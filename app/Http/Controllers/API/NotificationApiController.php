@@ -505,7 +505,8 @@ class NotificationApiController extends Controller
             $this->applyDateFilter($query, $dateFilter);
         }
 
-        $notifications = $query->paginate($perPage);
+        // Organization admins should NOT see user-only claim status updates
+        $notifications = $query->whereNotIn('type', ['claim_status_update','item_claimed'])->paginate($perPage);
 
         return response()->json([
             'success' => true,
@@ -573,7 +574,8 @@ class NotificationApiController extends Controller
             $query->whereJsonContains('data->organization_id', $organizationId);
         }
 
-        $notifications = $query->paginate($perPage);
+        // Superadmins should NOT see user-only claim status updates
+        $notifications = $query->whereNotIn('type', ['claim_status_update','item_claimed'])->paginate($perPage);
 
         return response()->json([
             'success' => true,

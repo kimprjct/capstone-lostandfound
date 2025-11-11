@@ -16,7 +16,30 @@ class RoleMiddleware
      */
 public function handle($request, Closure $next, $role)
 {
-    if (auth()->user() && auth()->user()->role === $role) {
+    $user = auth()->user();
+    if (!$user) {
+        abort(403, 'Unauthorized');
+    }
+
+    $effectiveRole = $user->role;
+    if (empty($effectiveRole)) {
+        if (isset($user->UserTypeID)) {
+            if ($user->UserTypeID === 1) {
+                $effectiveRole = 'admin';
+            } elseif ($user->UserTypeID === 2) {
+                $effectiveRole = 'tenant';
+            } elseif ($user->UserTypeID === 3) {
+                $effectiveRole = 'user';
+            }
+        }
+    }
+
+    // 'clinic' routes should accept tenant users
+    if ($role === 'clinic' && $effectiveRole === 'tenant') {
+        return $next($request);
+    }
+
+    if ($effectiveRole === $role) {
         return $next($request);
     }
 

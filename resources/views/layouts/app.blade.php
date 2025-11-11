@@ -19,6 +19,14 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     @stack('styles')
+    <style>
+        /* Slightly darker backgrounds for admin pages */
+        .admin-tone .bg-white { background-color: #f3f4f6 !important; } /* tailwind gray-100 */
+        .admin-tone .hover\:bg-gray-100:hover { background-color: #e5e7eb !important; } /* gray-200 */
+        .admin-tone .text-gray-700 { color: #374151; }
+        .admin-tone .text-gray-600 { color: #4b5563; }
+        .admin-tone .text-gray-800 { color: #1f2937; }
+    </style>
 </head>
 <body class="font-sans antialiased bg-gray-100">
     <div class="min-h-screen flex">
@@ -69,7 +77,7 @@
             </div>
             
             <!-- Content -->
-            <div class="flex-1 ml-64">
+            <div class="flex-1 ml-64<?php echo (auth()->user()->role === 'admin') ? ' admin-tone' : ''; ?>">
                 <!-- Top Navigation -->
                 <nav class="bg-white shadow-md p-4">
                     <div class="flex justify-between items-center">

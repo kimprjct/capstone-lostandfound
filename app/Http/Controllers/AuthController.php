@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -29,7 +31,7 @@ class AuthController extends Controller
         'phone_number' => $request->phone_number,
         'email'        => $request->email,
         'password'     => Hash::make($request->password),
-        'role'         => 'user',
+        'UserTypeID'   => 3, // Default to User (UserTypeID = 3)
     ]);
 
     $token = $user->createToken('mobile-token')->plainTextToken;
@@ -46,6 +48,17 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
+        $key = Str::lower((string) $request->input('email')).'|'.$request->ip();
+        $maxAttempts = 10;
+
+        if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
+            $seconds = RateLimiter::availableIn($key);
+            return response()->json([
+                'success' => false,
+                'message' => 'Too many login attempts. Please try again in '.$seconds.' seconds.'
+            ], 429);
+        }
+
         $request->validate([
             'email'    => 'required|email',
             'password' => 'required'
@@ -54,11 +67,14 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
+            RateLimiter::hit($key);
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid credentials'
             ], 401);
         }
+
+        RateLimiter::clear($key);
 
         $token = $user->createToken('mobile-token')->plainTextToken;
 

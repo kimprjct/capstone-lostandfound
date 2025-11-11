@@ -21,7 +21,10 @@ class DashboardController extends Controller
     $userCount = User::count();
     $lostItemsCount = LostItem::count();
     $foundItemsCount = FoundItem::count();
-    $claimCount = Claim::count(); // ✅ Total claims made
+    // Count only claims that have been verified in person by organization admin (status = 'approved' after in-person verification)
+    $claimCount = Claim::where('status', 'approved')
+        ->whereNotNull('resolved_at')
+        ->count();
     $returnedItemsCount = LostItem::where('status', 'returned')->count();
     
     // Recent organizations
@@ -80,6 +83,7 @@ class DashboardController extends Controller
     
     public function updateSettings(Request $request)
     {
+        /** @var \App\Models\User $user */
         $user = auth()->user();
         
         $request->validate([
@@ -119,7 +123,11 @@ class DashboardController extends Controller
         $monthEnd = now()->subMonths($i)->endOfMonth();
 
         $months->push($month);
-        $claims->push(Claim::whereBetween('created_at', [$monthStart, $monthEnd])->count());
+        // Count only claims verified in person (status = 'approved' after in-person verification)
+        $claims->push(Claim::where('status', 'approved')
+            ->whereNotNull('resolved_at')
+            ->whereBetween('resolved_at', [$monthStart, $monthEnd])
+            ->count());
     }
 
     return [

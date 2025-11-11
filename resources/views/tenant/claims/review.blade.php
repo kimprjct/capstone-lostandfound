@@ -176,15 +176,15 @@
                             <div class="flex-shrink-0 h-12 w-12">
                                 <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
                                     <span class="text-sm font-medium text-indigo-600">
-                                        {{ substr($claim->foundItem->user->first_name, 0, 1) }}{{ substr($claim->foundItem->user->last_name, 0, 1) }}
+                                        {{ substr(optional($claim->foundItem->user)->first_name ?? 'U', 0, 1) }}{{ substr(optional($claim->foundItem->user)->last_name ?? 'N', 0, 1) }}
                                     </span>
                                 </div>
                             </div>
                             <div>
                                 <p class="text-sm font-semibold text-gray-900">
-                                    {{ $claim->foundItem->user->first_name }} {{ $claim->foundItem->user->last_name }}
+                                    {{ optional($claim->foundItem->user)->first_name ?? 'Unknown' }} {{ optional($claim->foundItem->user)->last_name ?? '' }}
                                 </p>
-                                <p class="text-sm text-gray-500">{{ $claim->foundItem->user->email }}</p>
+                                <p class="text-sm text-gray-500">{{ optional($claim->foundItem->user)->email ?? 'N/A' }}</p>
                                 <p class="text-xs text-gray-400">Reported on {{ $claim->foundItem->created_at->format('M d, Y H:i') }}</p>
                             </div>
                         </div>
@@ -267,15 +267,15 @@
                             <div class="flex-shrink-0 h-12 w-12">
                                 <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
                                     <span class="text-sm font-medium text-indigo-600">
-                                        {{ substr($claim->lostItem->user->first_name, 0, 1) }}{{ substr($claim->lostItem->user->last_name, 0, 1) }}
+                                        {{ substr(optional($claim->lostItem->user)->first_name ?? 'U', 0, 1) }}{{ substr(optional($claim->lostItem->user)->last_name ?? 'N', 0, 1) }}
                                     </span>
                                 </div>
                             </div>
                             <div>
                                 <p class="text-sm font-semibold text-gray-900">
-                                    {{ $claim->lostItem->user->first_name }} {{ $claim->lostItem->user->last_name }}
+                                    {{ optional($claim->lostItem->user)->first_name ?? 'Unknown' }} {{ optional($claim->lostItem->user)->last_name ?? '' }}
                                 </p>
-                                <p class="text-sm text-gray-500">{{ $claim->lostItem->user->email }}</p>
+                                <p class="text-sm text-gray-500">{{ optional($claim->lostItem->user)->email ?? 'N/A' }}</p>
                                 <p class="text-xs text-gray-400">Reported on {{ $claim->lostItem->created_at->format('M d, Y H:i') }}</p>
                             </div>
                         </div>
@@ -385,16 +385,16 @@
                     <div class="flex items-center space-x-3">
                         <div class="flex-shrink-0 h-12 w-12">
                             <div class="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                                <span class="text-sm font-medium text-green-600">
-                                    {{ substr($claim->user->first_name, 0, 1) }}{{ substr($claim->user->last_name, 0, 1) }}
-                                </span>
+                                    <span class="text-sm font-medium text-green-600">
+                                    {{ substr(optional($claim->user)->first_name ?? 'U', 0, 1) }}{{ substr(optional($claim->user)->last_name ?? 'N', 0, 1) }}
+                                    </span>
                             </div>
                         </div>
                         <div>
                             <p class="text-sm font-semibold text-gray-900">
-                                {{ $claim->user->first_name }} {{ $claim->user->last_name }}
+                                {{ optional($claim->user)->first_name ?? 'Unknown' }} {{ optional($claim->user)->last_name ?? '' }}
                             </p>
-                            <p class="text-sm text-gray-500">{{ $claim->user->email }}</p>
+                            <p class="text-sm text-gray-500">{{ optional($claim->user)->email ?? 'N/A' }}</p>
                             <p class="text-xs text-gray-400">Claim submitted on {{ $claim->created_at->format('M d, Y H:i') }}</p>
                         </div>
                     </div>

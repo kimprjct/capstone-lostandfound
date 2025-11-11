@@ -11,9 +11,21 @@ use App\Http\Controllers\API\ClaimApiController;
 use App\Http\Controllers\API\NotificationApiController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\API\DeviceController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+// Email verification routes
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('api.verification.verify');
+
+Route::post('/email/verification-notification', [AuthController::class, 'resendVerificationEmail'])
+    ->middleware('throttle:6,1');
+
+Route::post('/email/verify-code', [AuthController::class, 'verifyEmailWithCode'])
+    ->middleware('throttle:6,1');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
@@ -131,12 +143,14 @@ Route::get('/mobile/notifications', function (Illuminate\Http\Request $request) 
     // Get all notifications first
     $allNotifications = $query->get();
     
-    // Filter out notifications related to user's own reports
+    // Filter out notifications about the user's own actions (but keep status updates)
     $filteredNotifications = $allNotifications->filter(function ($notification) use ($user) {
         // If it's a user notification, check if it's not related to user's own reports
         if ($notification->notifiable_type === 'App\Models\User') {
-            // Skip if it's the user's own notification
-            if ($notification->notifiable_id === $user->id) {
+            // Allow own user notifications for status updates
+            $type = $notification->type ?? ($notification->data['type'] ?? null);
+            $isStatusUpdate = in_array($type, ['claim_status_update','item_claimed']);
+            if ($notification->notifiable_id === $user->id && !$isStatusUpdate) {
                 return false;
             }
             
@@ -145,6 +159,15 @@ Route::get('/mobile/notifications', function (Illuminate\Http\Request $request) 
                 $reporterName = $notification->data['reporter_name'];
                 $userName = $user->first_name . ' ' . $user->last_name;
                 if ($reporterName === $userName) {
+                    return false;
+                }
+            }
+
+            // Exclude own new-claim org notifications surfaced as user-visible
+            if (isset($notification->data['claimer_name'])) {
+                $claimerName = $notification->data['claimer_name'];
+                $userName = $user->first_name . ' ' . $user->last_name;
+                if ($claimerName === $userName) {
                     return false;
                 }
             }
@@ -308,12 +331,13 @@ Route::get('/mobile/notifications/unread-count', function (Illuminate\Http\Reque
     // Get all notifications first
     $allNotifications = $query->get();
     
-    // Filter out notifications related to user's own reports
+    // Filter out notifications about the user's own actions (but keep status updates)
     $filteredNotifications = $allNotifications->filter(function ($notification) use ($user) {
         // If it's a user notification, check if it's not related to user's own reports
         if ($notification->notifiable_type === 'App\Models\User') {
-            // Skip if it's the user's own notification
-            if ($notification->notifiable_id === $user->id) {
+            $type = $notification->type ?? ($notification->data['type'] ?? null);
+            $isStatusUpdate = in_array($type, ['claim_status_update','item_claimed']);
+            if ($notification->notifiable_id === $user->id && !$isStatusUpdate) {
                 return false;
             }
             
@@ -322,6 +346,15 @@ Route::get('/mobile/notifications/unread-count', function (Illuminate\Http\Reque
                 $reporterName = $notification->data['reporter_name'];
                 $userName = $user->first_name . ' ' . $user->last_name;
                 if ($reporterName === $userName) {
+                    return false;
+                }
+            }
+
+            // Exclude own new-claim org notifications surfaced as user-visible
+            if (isset($notification->data['claimer_name'])) {
+                $claimerName = $notification->data['claimer_name'];
+                $userName = $user->first_name . ' ' . $user->last_name;
+                if ($claimerName === $userName) {
                     return false;
                 }
             }
@@ -706,6 +739,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications/organization', [NotificationApiController::class, 'getOrganizationNotifications']);
     Route::get('/notifications/admin', [NotificationApiController::class, 'getAdminNotifications']);
     Route::get('/notifications/admin/stats', [NotificationApiController::class, 'getAdminStats']);
+    // Devices (register Expo push token)
+    Route::post('/devices', [DeviceController::class, 'store']);
     
 });
 

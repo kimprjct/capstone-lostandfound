@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Auth\AuthController;
+use Laravel\Socialite\Facades\Socialite;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\OrganizationController;
 use App\Http\Controllers\Admin\UserController;
@@ -71,6 +72,10 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Google OAuth routes
+Route::get('/auth/google/redirect', [AuthController::class, 'redirectToGoogle'])->name('google.redirect');
+Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('google.callback');
 
 // General notifications route that redirects based on user role
 Route::middleware('auth')->get('/notifications', function () {
@@ -367,6 +372,8 @@ Route::middleware(['auth', 'role:tenant'])->name('tenant.')->group(function () {
     Route::get('tenant/claims/{claim}/review', [TenantClaimController::class, 'review'])->name('claims.review');
     Route::post('tenant/claims/{claim}/approve', [TenantClaimController::class, 'approve'])->name('claims.approve');
     Route::post('tenant/claims/{claim}/reject', [TenantClaimController::class, 'reject'])->name('claims.reject');
+    Route::post('tenant/claims/{claim}/claim', [TenantClaimController::class, 'markClaimed'])->name('claims.claim');
+    Route::post('tenant/claims/{claim}/reject-in-person', [TenantClaimController::class, 'rejectInPerson'])->name('claims.reject_in_person');
     
     // Settings
     Route::get('tenant/settings', [TenantDashboardController::class, 'settings'])->name('settings');

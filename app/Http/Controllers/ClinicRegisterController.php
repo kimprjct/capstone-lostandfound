@@ -68,7 +68,7 @@ class ClinicRegisterController extends Controller
             'first_name' => $clinic->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'clinic',
+            'UserTypeID' => 2, // Clinic maps to Tenant (UserTypeID = 2)
         ]);
 
         Session::forget('clinic_data_step1');

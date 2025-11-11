@@ -36,7 +36,7 @@ public function store(Request $request)
         'name' => $request->name,
         'email' => $request->email,
         'password' => Hash::make($request->password),
-        'role' => 'clinic',
+        'UserTypeID' => 2, // Clinic maps to Tenant (UserTypeID = 2)
     ]);
 
     // Save clinic info

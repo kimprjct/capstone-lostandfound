@@ -67,6 +67,19 @@
                         </x-button>
                     </div>
                 </form>
+
+                <!-- Divider -->
+                <div class="flex items-center my-6">
+                    <div class="flex-1 h-px bg-white/20"></div>
+                    <span class="px-3 text-gray-300 text-sm">or</span>
+                    <div class="flex-1 h-px bg-white/20"></div>
+                </div>
+
+                <!-- Google Sign-In -->
+                <a href="{{ route('google.redirect') }}" class="w-full inline-flex items-center justify-center gap-3 bg-white text-[#1E2D3D] font-semibold py-3 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-150">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5"/>
+                    <span>Sign in with Google</span>
+                </a>
             </div>
 
             <!-- Right (Image/Design) -->

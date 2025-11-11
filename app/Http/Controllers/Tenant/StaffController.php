@@ -24,9 +24,9 @@ class StaffController extends Controller
     
         $organization = $user->organization;
     
-        // Users explicitly part of the organization
+        // Users explicitly part of the organization (UserTypeID: 2=Tenant, 3=User)
         $staffMembersQuery = User::where('organization_id', $organization->id)
-            ->whereIn('role', ['tenant', 'user']);
+            ->whereIn('UserTypeID', [2, 3]);
     
         // Users who reported Lost Items
         $lostReporters = User::whereHas('lostItems', function ($query) use ($organization) {
@@ -98,7 +98,7 @@ class StaffController extends Controller
         $user->phone_number = $request->phone_number;
         $user->email = $request->email;
         $user->password = Hash::make($request->password);
-        $user->role = 'tenant';
+        $user->UserTypeID = 2; // Tenant
         $user->organization_id = $authUser->organization_id;
         $user->save();
 

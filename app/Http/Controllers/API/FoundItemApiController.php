@@ -111,6 +111,7 @@ class FoundItemApiController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $maxKb = (int) config('upload.max_photo_mb', 5) * 1024;
         $validator = Validator::make($request->all(), [
             'organization_id' => 'required|exists:organizations,id',
             'title' => 'required|string|max:255',
@@ -118,7 +119,8 @@ class FoundItemApiController extends Controller
             'location' => 'required|string|max:255',
             'date_found' => 'required|date',
             'time_found' => 'required|date_format:H:i:s',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => ['nullable','image','mimes:jpeg,png,jpg,gif','max:'.$maxKb],
+            'images.*' => ['nullable','image','mimes:jpeg,png,jpg,gif','max:'.$maxKb],
             'category' => 'required|string|max:255',
         ]);
 
@@ -274,12 +276,13 @@ class FoundItemApiController extends Controller
      */
     public function update(Request $request, $id): JsonResponse
     {
+        $maxKb = (int) config('upload.max_photo_mb', 5) * 1024;
         $validator = Validator::make($request->all(), [
             'title' => 'sometimes|required|string|max:255',
             'description' => 'sometimes|required|string',
             'location' => 'sometimes|required|string|max:255',
             'date_found' => 'sometimes|required|date',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => ['nullable','image','mimes:jpeg,png,jpg,gif','max:'.$maxKb],
             'category' => 'sometimes|required|string|max:255',
         ]);
 

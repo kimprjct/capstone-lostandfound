@@ -42,7 +42,7 @@
             <div class="flex justify-center mb-2">
                 <i class="fas fa-clipboard-check fa-2x"></i>
             </div>
-            <h3 class="text-sm font-medium">Total Claims Made</h3>
+            <h3 class="text-sm font-medium">Total Claims Verified</h3>
             <p class="text-3xl font-bold">{{ number_format($claimCount ?? 0) }}</p>
         </div>
     </div>
@@ -61,32 +61,51 @@
     </div>
 </div>
 
+{{-- Hidden data container for chart data --}}
+<div id="chart-data" 
+     data-monthly-months='@json($monthlyStats['months'])'
+     data-monthly-lost='@json($monthlyStats['lostItems'])'
+     data-monthly-found='@json($monthlyStats['foundItems'])'
+     data-monthly-returned='@json($monthlyStats['returnedItems'])'
+     data-claim-months='@json($claimStats['months'])'
+     data-claim-claims='@json($claimStats['claims'])'
+     style="display: none;"></div>
+
 {{-- Chart.js --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    // Get data from data attributes to avoid linter issues with Blade syntax
+    const chartDataEl = document.getElementById('chart-data');
+    const monthlyStatsMonths = JSON.parse(chartDataEl.getAttribute('data-monthly-months'));
+    const monthlyStatsLostItems = JSON.parse(chartDataEl.getAttribute('data-monthly-lost'));
+    const monthlyStatsFoundItems = JSON.parse(chartDataEl.getAttribute('data-monthly-found'));
+    const monthlyStatsReturnedItems = JSON.parse(chartDataEl.getAttribute('data-monthly-returned'));
+    const claimStatsMonths = JSON.parse(chartDataEl.getAttribute('data-claim-months'));
+    const claimStatsClaims = JSON.parse(chartDataEl.getAttribute('data-claim-claims'));
+
     const itemsCtx = document.getElementById('itemsChart').getContext('2d');
     new Chart(itemsCtx, {
         type: 'line',
         data: {
-            labels: @json($monthlyStats['months']),
+            labels: monthlyStatsMonths,
             datasets: [
                 {
                     label: 'Lost Items',
-                    data: @json($monthlyStats['lostItems']),
+                    data: monthlyStatsLostItems,
                     borderColor: '#f87171',
                     backgroundColor: 'rgba(248,113,113,0.2)',
                     fill: true
                 },
                 {
                     label: 'Found Items',
-                    data: @json($monthlyStats['foundItems']),
+                    data: monthlyStatsFoundItems,
                     borderColor: '#60a5fa',
                     backgroundColor: 'rgba(96,165,250,0.2)',
                     fill: true
                 },
                 {
                     label: 'Returned Items',
-                    data: @json($monthlyStats['returnedItems']),
+                    data: monthlyStatsReturnedItems,
                     borderColor: '#34d399',
                     backgroundColor: 'rgba(52,211,153,0.2)',
                     fill: true
@@ -98,7 +117,7 @@
                 y: {
                     beginAtZero: true,
                     ticks: {
-                        precision: 0 // ✅ force whole numbers
+                        precision: 0
                     }
                 }
             }
@@ -109,10 +128,10 @@
     new Chart(claimsCtx, {
         type: 'bar',
         data: {
-            labels: @json($claimStats['months']),
+            labels: claimStatsMonths,
             datasets: [{
                 label: 'Claims',
-                data: @json($claimStats['claims']),
+                data: claimStatsClaims,
                 backgroundColor: '#4ade80',
                 borderColor: '#22c55e',
                 borderWidth: 1
@@ -123,7 +142,7 @@
                 y: {
                     beginAtZero: true,
                     ticks: {
-                        precision: 0 // ✅ force whole numbers
+                        precision: 0
                     }
                 }
             }

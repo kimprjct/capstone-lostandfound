@@ -5,9 +5,10 @@
 @section('page-title', 'Dashboard')
 
 @section('content')
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<!-- First Row: Three Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
     <!-- Lost Items Stats -->
-    <div class="bg-white rounded-lg shadow-md p-6">
+    <div class="bg-white rounded-lg shadow-lg border-t-4 border-red-500 p-6 hover:shadow-xl transition-shadow duration-300 h-full">
         <div class="flex items-center mb-4">
             <div class="p-3 rounded-full bg-red-100 mr-4">
                 <i class="fas fa-search text-red-500 text-xl"></i>
@@ -21,7 +22,7 @@
     </div>
 
     <!-- Found Items Stats -->
-    <div class="bg-white rounded-lg shadow-md p-6">
+    <div class="bg-white rounded-lg shadow-lg border-t-4 border-green-500 p-6 hover:shadow-xl transition-shadow duration-300 h-full">
         <div class="flex items-center mb-4">
             <div class="p-3 rounded-full bg-green-100 mr-4">
                 <i class="fas fa-box-open text-green-500 text-xl"></i>
@@ -35,7 +36,7 @@
     </div>
 
     <!-- Pending Claims -->
-    <div class="bg-white rounded-lg shadow-md p-6">
+    <div class="bg-white rounded-lg shadow-lg border-t-4 border-yellow-500 p-6 hover:shadow-xl transition-shadow duration-300 h-full">
         <div class="flex items-center mb-4">
             <div class="p-3 rounded-full bg-yellow-100 mr-4">
                 <i class="fas fa-clipboard-check text-yellow-500 text-xl"></i>
@@ -47,19 +48,38 @@
         </div>
         <p class="text-sm text-gray-600">Claims awaiting review</p>
     </div>
+</div>
 
-    <!-- Unclaimed Items Stats -->
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <div class="flex items-center mb-4">
-            <div class="p-3 rounded-full bg-blue-100 mr-4">
-                <i class="fas fa-exclamation-circle text-blue-500 text-xl"></i>
+<!-- Second Row: Two Centered Cards -->
+<div class="flex justify-center mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl w-full">
+        <!-- Unclaimed Items Stats -->
+        <div class="bg-white rounded-lg shadow-lg border-t-4 border-blue-500 p-6 hover:shadow-xl transition-shadow duration-300 h-full">
+            <div class="flex items-center mb-4">
+                <div class="p-3 rounded-full bg-blue-100 mr-4">
+                    <i class="fas fa-exclamation-circle text-blue-500 text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-sm">Unclaimed Items</p>
+                    <h3 class="font-bold text-2xl">{{ $unclaimedItemsCount }}</h3>
+                </div>
             </div>
-            <div>
-                <p class="text-gray-500 text-sm">Unclaimed Items</p>
-                <h3 class="font-bold text-2xl">{{ $unclaimedItemsCount }}</h3>
-            </div>
+            <p class="text-sm text-gray-600">Total items not yet claimed</p>
         </div>
-        <p class="text-sm text-gray-600">Total items not yet claimed</p>
+
+        <!-- Claimed Items Stats -->
+        <div class="bg-white rounded-lg shadow-lg border-t-4 border-indigo-500 p-6 hover:shadow-xl transition-shadow duration-300 h-full">
+            <div class="flex items-center mb-4">
+                <div class="p-3 rounded-full bg-indigo-100 mr-4">
+                    <i class="fas fa-check-circle text-indigo-500 text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-sm">Claimed Items</p>
+                    <h3 class="font-bold text-2xl">{{ $claimedItemsCount }}</h3>
+                </div>
+            </div>
+            <p class="text-sm text-gray-600">Total items successfully claimed</p>
+        </div>
     </div>
 </div>
  

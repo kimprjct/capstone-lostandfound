@@ -30,4 +30,16 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI', env('APP_URL') . '/auth/google/callback'),
+    ],
+
+    'sms' => [
+        'url' => env('SMS_API_URL', 'https://api.semaphore.co/api/v4/messages'),
+        'key' => env('SMS_API_KEY'),
+        'sender' => env('SMS_SENDER_NAME', 'AutoRepair'),
+    ],
+
 ];

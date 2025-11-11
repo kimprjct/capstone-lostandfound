@@ -134,18 +134,7 @@ class ClaimApiController extends Controller
             $this->notificationService->notifyFoundItemClaim($foundItem, $claim);
         }
 
-        // Notify claimant
-        try {
-            $expo = app(ExpoPushService::class);
-            $tokens = UserDevice::where('user_id', $userId)->pluck('expo_push_token')->all();
-            $itemTitle = $foundItemId ? ($foundItem->title ?? 'Item') : ($lostItem->title ?? 'Item');
-            $expo->send($tokens, 'Claim submitted', "Your claim for {$itemTitle} has been submitted. Please visit the admin office with proof for verification.", [
-                'type' => 'claim_submitted',
-                'claim_id' => $claim->id,
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('Expo notify claimant failed: '.$e->getMessage());
-        }
+        // Do NOT notify the claimant about their own submission (per requirements)
 
         // Notify org admins
         try {
@@ -183,11 +172,12 @@ class ClaimApiController extends Controller
             ->where('user_id', Auth::id())
             ->firstOrFail();
 
+        $maxKb = (int) config('upload.max_photo_mb', 5) * 1024;
         $validator = Validator::make($request->all(), [
             'claim_reason' => 'required|string|min:5',
             'location' => 'nullable|string|max:255',
             'claim_datetime' => 'nullable|date',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096',
+            'photo' => ['nullable','image','mimes:jpeg,png,jpg,gif','max:'.$maxKb],
         ]);
 
         if ($validator->fails()) {

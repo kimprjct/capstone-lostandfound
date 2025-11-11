@@ -10,6 +10,8 @@ use App\Models\Organization;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -92,7 +94,7 @@ class AuthController extends Controller
             'address' => $request->address,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'user', // Default role for registration
+            'UserTypeID' => 3, // Default to User (UserTypeID = 3)
         ]);
         
         event(new Registered($user));
@@ -116,5 +118,49 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
         
         return redirect('/');
+    }
+
+    /**
+     * Redirect the user to Google's OAuth page.
+     */
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    /**
+     * Handle Google OAuth callback.
+     */
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->stateless()->user();
+
+            $user = User::where('email', $googleUser->getEmail())->first();
+
+            if (!$user) {
+                $user = User::create([
+                    'first_name' => $googleUser->user['given_name'] ?? ($googleUser->getName() ? explode(' ', $googleUser->getName())[0] : 'User'),
+                    'middle_name' => null,
+                    'last_name' => $googleUser->user['family_name'] ?? (function($name){ $parts = explode(' ', $name ?? ''); array_shift($parts); return trim(implode(' ', $parts)) ?: 'Google'; })($googleUser->getName()),
+                    'phone_number' => '',
+                    'address' => '',
+                    'email' => $googleUser->getEmail(),
+                    'password' => Hash::make(Str::random(32)),
+                    'UserTypeID' => 3, // Default to User (UserTypeID = 3)
+                ]);
+            }
+
+            Auth::login($user, true);
+
+            if ($user->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            } elseif ($user->role === 'tenant') {
+                return redirect()->route('tenant.dashboard');
+            }
+            return redirect()->route('user.dashboard');
+        } catch (\Throwable $e) {
+            return redirect()->route('login')->withErrors(['google' => 'Google sign-in failed: ' . $e->getMessage()]);
+        }
     }
 }

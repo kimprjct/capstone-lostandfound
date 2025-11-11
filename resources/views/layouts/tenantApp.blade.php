@@ -56,7 +56,7 @@
                     $sidebarStyle = "background-color: {$baseColor}; background-image: linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px), linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px); background-size: 20px 20px;";
                 }
             @endphp
-            <div class="w-64 text-white fixed h-full" style="<?php echo $sidebarStyle; ?>">
+            <div class="w-64 text-white fixed h-full z-40" style="<?php echo $sidebarStyle; ?>">
                 <div class="p-4">
                     @if(auth()->user()->role === 'admin')
                         @include('layouts.sidebar.admin')
@@ -69,7 +69,7 @@
             </div>
             
             <!-- Content -->
-            <div class="flex-1 ml-64">
+            <div class="flex-1 ml-64 relative z-0 overflow-x-auto">
                 <!-- Top Navigation -->
                 <nav class="bg-white shadow-md p-4">
                     <div class="flex justify-between items-center">

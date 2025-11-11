@@ -142,6 +142,7 @@ class LostItemApiController extends Controller
             Log::info('Lost item store method called');
             Log::info('Request data:', $request->all());
             
+            $maxKb = (int) config('upload.max_photo_mb', 5) * 1024;
             $validator = Validator::make($request->all(), [
                 'organization_id' => 'required|exists:organizations,id',
                 'title' => 'required|string|max:255',
@@ -149,7 +150,8 @@ class LostItemApiController extends Controller
                 'location' => 'required|string|max:255',
                 'date_lost' => 'required|date',
                 'time_lost' => 'required|date_format:H:i:s',
-                'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'image' => ['nullable','image','mimes:jpeg,png,jpg,gif','max:'.$maxKb],
+                'images.*' => ['nullable','image','mimes:jpeg,png,jpg,gif','max:'.$maxKb],
                 'category' => 'required|string|max:255',
             ]);
 
@@ -332,12 +334,13 @@ class LostItemApiController extends Controller
      */
     public function update(Request $request, $id): JsonResponse
     {
+        $maxKb = (int) config('upload.max_photo_mb', 5) * 1024;
         $validator = Validator::make($request->all(), [
             'title' => 'sometimes|required|string|max:255',
             'description' => 'sometimes|required|string',
             'location' => 'sometimes|required|string|max:255',
             'date_lost' => 'sometimes|required|date',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => ['nullable','image','mimes:jpeg,png,jpg,gif','max:'.$maxKb],
             'category' => 'sometimes|required|string|max:255',
         ]);
 

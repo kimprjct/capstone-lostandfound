@@ -35,18 +35,18 @@
                         @endif
                         <div class="text-center">
                             <p class="text-xl font-semibold text-gray-900">{{ $organization->name }}</p>
-                            <p class="text-sm text-gray-500">Created {{ $organization->created_at->format('M d, Y') }}</p>
+                            <p class="text-sm text-gray-500">Created {{ $organization->created_at ? $organization->created_at->format('M d, Y') : 'Unknown' }}</p>
                         </div>
                     </div>
 
                     <div class="p-4 flex-grow">
-                        <p class="text-gray-700 mb-3">{{ Str::limit($organization->address, 80) }}</p>
+                        <p class="text-gray-700 mb-3">{{ $organization->address ? Str::limit($organization->address, 80) : 'No address provided' }}</p>
                         <div class="flex justify-between text-sm text-gray-600 font-medium">
                             <div>
-                                Staff: {{ $organization->users->where('role', 'tenant')->count() }}
+                                Staff: {{ $organization->users ? $organization->users->where('role', 'tenant')->count() : 0 }}
                             </div>
                             <div>
-                                Lost: {{ $organization->lostItems->count() }} | Found: {{ $organization->foundItems->count() }}
+                                Lost: {{ $organization->lostItems ? $organization->lostItems->count() : 0 }} | Found: {{ $organization->foundItems ? $organization->foundItems->count() : 0 }}
                             </div>
                         </div>
                     </div>

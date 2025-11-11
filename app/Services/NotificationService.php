@@ -84,24 +84,47 @@ class NotificationService
     {
         $user = $claim->user;
         $item = $claim->foundItem ?? $claim->lostItem;
-        
-        $statusMessages = [
-            'pending' => 'Your claim is pending review',
-            'approved' => 'Your claim has been approved!',
-            'rejected' => 'Your claim has been rejected',
-            'completed' => 'Your claim has been completed successfully',
-        ];
+        $organization = $claim->organization ?? ($item ? $item->organization : null);
+
+        $itemName = $item ? $item->title : 'Item';
+        $location = $organization->claim_location ?? ($item->location ?? 'Lost and Found Office');
+        $officeHours = $organization->office_hours ?? 'Office hours';
+        $requirements = 'Valid ID and proof of ownership';
+        $refCode = $claim->claim_code ?: '';
+
+        $title = 'FoundU - Claim Status Update';
+        $message = 'FoundU - ';
+        if ($status === 'approved') {
+            $message .= "Your claim for {$itemName} has been approved!\n";
+            $message .= "Location: {$location}\n";
+            $message .= "Office Hours: {$officeHours}\n";
+            $message .= "Within 1 month to claim the item\n";
+            $message .= "Bring: {$requirements}";
+            if ($refCode) {
+                $message .= "\nReference Code: {$refCode}";
+            }
+        } elseif ($status === 'rejected') {
+            $reason = $claim->rejection_reason ?: 'No reason provided';
+            $message .= "Your claim for {$itemName} has been rejected.\nReason: {$reason}";
+        } else {
+            $message .= 'Your claim status has been updated.';
+        }
 
         $this->createUserNotification(
             $user,
             'claim_status_update',
-            'Claim Status Update',
-            $statusMessages[$status] ?? 'Your claim status has been updated',
+            $title,
+            $message,
             [
                 'claim_id' => $claim->id,
-                'item_id' => $item->id,
+                'item_id' => $item?->id,
                 'item_type' => $claim->found_item_id ? 'found' : 'lost',
                 'status' => $status,
+                'location' => $location,
+                'office_hours' => $officeHours,
+                'requirements' => $requirements,
+                'reference_code' => $refCode,
+                'rejection_reason' => $claim->rejection_reason,
             ],
             $status === 'approved' ? 'high' : 'normal',
             'claim'
@@ -469,8 +492,8 @@ class NotificationService
         $this->createUserNotification(
             $user,
             'item_claimed',
-            ucfirst($itemType) . ' Item ' . ucfirst($action),
-            "Your {$itemType} item '{$item->title}' has been {$action} successfully!",
+            'FoundU - ' . ucfirst($itemType) . ' Item ' . ucfirst($action),
+            "FoundU - Your {$itemType} item '{$item->title}' has been {$action} successfully!",
             [
                 'item_id' => $item->id,
                 'item_type' => $itemType,
@@ -494,7 +517,7 @@ class NotificationService
         $this->createOrganizationNotification(
             $organization,
             'item_completed',
-            ucfirst($itemType) . ' Item ' . ucfirst($action),
+            'FoundU - ' . ucfirst($itemType) . ' Item ' . ucfirst($action),
             "A {$itemType} item '{$item->title}' has been successfully {$action}",
             [
                 'item_id' => $item->id,

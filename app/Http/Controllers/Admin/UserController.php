@@ -21,9 +21,14 @@ class UserController extends Controller
     {
         $query = User::query();
         
-        // Filter by role if provided
+        // Filter by role if provided (map role names to UserTypeID)
         if ($request->has('role') && in_array($request->role, ['admin', 'tenant', 'user'])) {
-            $query->where('role', $request->role);
+            $roleMap = [
+                'admin' => 1,  // SuperAdmin
+                'tenant' => 2, // Tenant
+                'user' => 3    // User
+            ];
+            $query->where('UserTypeID', $roleMap[$request->role]);
         }
         
         $users = $query->latest()->paginate(10);
@@ -61,6 +66,13 @@ class UserController extends Controller
             'organization_id' => 'nullable|exists:organizations,id',
         ]);
 
+        // Map role to UserTypeID
+        $roleMap = [
+            'admin' => 1,  // SuperAdmin
+            'tenant' => 2, // Tenant
+            'user' => 3    // User
+        ];
+        
         $user = new User();
         $user->first_name = $request->first_name;
         $user->middle_name = $request->middle_name;
@@ -69,7 +81,7 @@ class UserController extends Controller
         $user->phone_number = $request->phone_number;
         $user->email = $request->email;
         $user->password = Hash::make($request->password);
-        $user->role = $request->role;
+        $user->UserTypeID = $roleMap[$request->role];
         
         if ($request->role == 'tenant' && $request->organization_id) {
             $user->organization_id = $request->organization_id;
@@ -136,13 +148,20 @@ class UserController extends Controller
             $user->password = Hash::make($request->password);
         }
 
+        // Map role to UserTypeID
+        $roleMap = [
+            'admin' => 1,  // SuperAdmin
+            'tenant' => 2, // Tenant
+            'user' => 3    // User
+        ];
+        
         $user->first_name = $request->first_name;
         $user->middle_name = $request->middle_name;
         $user->last_name = $request->last_name;
         $user->address = $request->address;
         $user->phone_number = $request->phone_number;
         $user->email = $request->email;
-        $user->role = $request->role;
+        $user->UserTypeID = $roleMap[$request->role];
         
         // Update organization based on role
         if ($request->role == 'tenant') {

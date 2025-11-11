@@ -5,7 +5,7 @@
 @section('page-title', 'Claim History')
 
 @section('content')
-<div class="px-6 py-4">
+<div id="claimsPageContainer" class="px-6 py-4 relative">
     <div class="mb-6">
         <h1 class="text-2xl font-bold">Claim History</h1>
     </div>
@@ -100,15 +100,15 @@
                                 <div class="flex-shrink-0 h-8 w-8">
                                     <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
                                         <span class="text-xs font-medium text-indigo-600">
-                                            {{ substr($claim->user->first_name, 0, 1) }}{{ substr($claim->user->last_name, 0, 1) }}
+                                            {{ substr(optional($claim->user)->first_name ?? 'U', 0, 1) }}{{ substr(optional($claim->user)->last_name ?? 'N', 0, 1) }}
                                         </span>
                                     </div>
                                 </div>
                                 <div class="ml-3">
                                     <div class="text-sm font-medium text-gray-900">
-                                        {{ $claim->user->first_name }} {{ $claim->user->last_name }}
+                                        {{ optional($claim->user)->first_name ?? 'Unknown' }} {{ optional($claim->user)->last_name ?? '' }}
                                     </div>
-                                    <div class="text-sm text-gray-500">{{ $claim->user->email }}</div>
+                                    <div class="text-sm text-gray-500">{{ optional($claim->user)->email ?? 'N/A' }}</div>
                                 </div>
                             </div>
                         </td>
@@ -133,8 +133,18 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-2">
                                 <button data-claim-id="{{ $claim->id }}" 
-                                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-md text-sm view-claim-btn">
+                                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-md text-sm view-claim-btn whitespace-nowrap">
                                     <i class="fas fa-eye mr-1"></i> View
+                                </button>
+                                <button data-claim-id="{{ $claim->id }}"
+                                        class="bg-green-600 {{ $claim->status === 'pending' ? 'hover:bg-green-700' : '' }} text-white px-2.5 py-1 rounded-md text-sm claim-btn whitespace-nowrap {{ $claim->status !== 'pending' ? 'opacity-50 cursor-not-allowed blur-[0.5px]' : '' }}"
+                                        {{ $claim->status !== 'pending' ? 'disabled' : '' }}>
+                                    <i class="fas fa-check-double mr-1"></i> Claim
+                                </button>
+                                <button data-claim-id="{{ $claim->id }}"
+                                        class="bg-red-600 {{ $claim->status === 'pending' ? 'hover:bg-red-700' : '' }} text-white px-2.5 py-1 rounded-md text-sm reject-in-person-btn whitespace-nowrap {{ $claim->status !== 'pending' ? 'opacity-50 cursor-not-allowed blur-[0.5px]' : '' }}"
+                                        {{ $claim->status !== 'pending' ? 'disabled' : '' }}>
+                                    <i class="fas fa-user-times mr-1"></i> Reject
                                 </button>
                             </div>
                         </td>
@@ -153,6 +163,25 @@
         </div>
         <div class="px-4 py-3 border-t">{{ $claims->withQueryString()->links() }}</div>
     </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="absolute z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div id="modalContentWrapper" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 1rem; pointer-events: none;">
+            <div class="bg-white rounded-xl overflow-hidden pointer-events-auto" style="width: 420px; max-width: 90vw; position: relative; z-index: 10; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 0, 0, 0.1);">
+                <div class="px-4 py-3 border-b">
+                    <h3 class="text-lg font-medium text-gray-900" id="modal-title">Confirm Action</h3>
+                </div>
+                <div class="px-4 py-4">
+                    <p id="confirmMessage" class="text-sm text-gray-700 leading-6"></p>
+                </div>
+                <div class="px-4 py-3 bg-gray-50 flex justify-end space-x-2">
+                    <button id="confirmCancelBtn" type="button" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-3 py-1 rounded-md text-sm">Cancel</button>
+                    <button id="confirmProceedBtn" type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-md text-sm">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -171,6 +200,127 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target.closest('.view-proof-btn')) {
             const claimId = e.target.closest('.view-proof-btn').getAttribute('data-claim-id');
             window.open(`/tenant/claims/${claimId}/proof`, '_blank');
+        }
+    });
+
+    // Modal logic
+    const confirmModal = document.getElementById('confirmModal');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+    const confirmProceedBtn = document.getElementById('confirmProceedBtn');
+
+    function openConfirmModal(action, claimId, message) {
+        confirmModal.dataset.action = action;
+        confirmModal.dataset.claimId = claimId;
+        confirmMessage.textContent = message;
+        
+        // Ensure modal covers full container for proper centering
+        const claimsContainer = document.getElementById('claimsPageContainer');
+        if (claimsContainer) {
+            // Calculate the full dimensions including scrollable content
+            const containerHeight = Math.max(
+                claimsContainer.scrollHeight,
+                claimsContainer.offsetHeight,
+                claimsContainer.clientHeight
+            );
+            const containerWidth = Math.max(
+                claimsContainer.scrollWidth,
+                claimsContainer.offsetWidth,
+                claimsContainer.clientWidth
+            );
+            
+            // Set modal to cover entire container for centering
+            confirmModal.style.position = 'absolute';
+            confirmModal.style.top = '0';
+            confirmModal.style.left = '0';
+            confirmModal.style.width = containerWidth + 'px';
+            confirmModal.style.height = containerHeight + 'px';
+            
+            // Ensure content wrapper also covers full area for centering
+            const contentWrapper = document.getElementById('modalContentWrapper');
+            if (contentWrapper) {
+                contentWrapper.style.width = containerWidth + 'px';
+                contentWrapper.style.height = containerHeight + 'px';
+            }
+            
+            claimsContainer.style.overflow = 'hidden';
+        }
+        
+        confirmModal.classList.remove('hidden');
+    }
+
+    function closeConfirmModal() {
+        confirmModal.classList.add('hidden');
+        delete confirmModal.dataset.action;
+        delete confirmModal.dataset.claimId;
+        // Reset dimensions and restore scrolling
+        confirmModal.style.height = '';
+        confirmModal.style.width = '';
+        const contentWrapper = document.getElementById('modalContentWrapper');
+        if (contentWrapper) {
+            contentWrapper.style.width = '';
+            contentWrapper.style.height = '';
+        }
+        const claimsContainer = document.getElementById('claimsPageContainer');
+        if (claimsContainer) {
+            claimsContainer.style.overflow = '';
+        }
+    }
+
+    // Open modal for Claim button
+    document.addEventListener('click', function(e) {
+        const claimBtn = e.target.closest('.claim-btn');
+        if (claimBtn && !claimBtn.disabled) {
+            const claimId = claimBtn.getAttribute('data-claim-id');
+            openConfirmModal('claim', claimId, 'Confirm: The item ownership was verified in person and released.');
+            return;
+        }
+    });
+
+    // Open modal for Reject button
+    document.addEventListener('click', function(e) {
+        const rejectBtn = e.target.closest('.reject-in-person-btn');
+        if (rejectBtn && !rejectBtn.disabled) {
+            const claimId = rejectBtn.getAttribute('data-claim-id');
+            openConfirmModal('reject-in-person', claimId, 'Confirm: The claim was rejected after in-person verification.');
+            return;
+        }
+    });
+
+    // Close modal
+    confirmCancelBtn.addEventListener('click', closeConfirmModal);
+    confirmModal.addEventListener('click', function(e) {
+        if (e.target === confirmModal) closeConfirmModal();
+    });
+
+    // Confirm action
+    confirmProceedBtn.addEventListener('click', async function() {
+        const action = confirmModal.dataset.action;
+        const claimId = confirmModal.dataset.claimId;
+        if (!action || !claimId) { closeConfirmModal(); return; }
+        
+        const url = action === 'claim' 
+            ? `/tenant/claims/${claimId}/claim`
+            : `/tenant/claims/${claimId}/reject-in-person`;
+        
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                }
+            });
+            if (res.ok) {
+                location.reload();
+            } else {
+                const data = await res.json();
+                alert(data.message || 'Failed to process request.');
+                closeConfirmModal();
+            }
+        } catch (err) {
+            alert('Failed to process request.');
+            closeConfirmModal();
         }
     });
 });

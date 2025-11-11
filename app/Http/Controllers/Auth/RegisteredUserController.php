@@ -35,6 +35,15 @@ class RegisteredUserController extends Controller
             'password'       => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        // Map role to UserTypeID: admin=1, tenant=2, user=3
+        $roleMap = [
+            'admin' => 1,
+            'tenant' => 2,
+            'user' => 3,
+        ];
+        $requestedRole = $request->role ?? 'user';
+        $userTypeId = $roleMap[$requestedRole] ?? 3; // Default to User (3)
+
         $user = User::create([
             'first_name'   => $request->first_name,
             'middle_name'  => $request->middle_name,
@@ -42,7 +51,7 @@ class RegisteredUserController extends Controller
             'phone_number' => $request->phone_number,
             'email'        => $request->email,
             'password'     => Hash::make($request->password),
-            'role'         => $request->role ?? 'user',
+            'UserTypeID'   => $userTypeId,
         ]);
         
 
