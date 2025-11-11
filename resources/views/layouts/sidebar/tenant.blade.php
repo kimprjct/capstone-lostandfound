@@ -1,9 +1,10 @@
 @php
+    // Organization + theme defaults
     $organization = auth()->user() && auth()->user()->organization ? auth()->user()->organization : null;
     $colorTheme = $organization && $organization->color_theme ? $organization->color_theme : 'indigo';
     $sidebarBg = $organization && $organization->sidebar_bg ? $organization->sidebar_bg : 'default';
     
-    // Set color values based on theme
+    // Color map
     $colorMap = [
         'indigo' => [
             'base' => '#4338ca',    // indigo-700
@@ -49,7 +50,7 @@
     
     $colors = isset($colorMap[$colorTheme]) ? $colorMap[$colorTheme] : $colorMap['indigo'];
     
-    // Generate style attributes
+    // Styles used in inline attributes
     $borderStyle = "border-bottom: 1px solid {$colors['border']};";
     $hoverStyle = "transition: background-color 0.2s;";
     $activeStyle = "background-color: {$colors['hover']};";
@@ -69,7 +70,11 @@
                 </div>
             </div>
         @endif
-        <h3 class="text-lg font-semibold text-white truncate w-full">{{ $organization->name }}</h3>
+
+        {{-- Name should wrap into two (or more) lines instead of truncating --}}
+        <h3 class="text-lg font-semibold text-white text-center break-words whitespace-normal leading-tight w-full">
+            {{ $organization->name }}
+        </h3>
     </div>
 </div>
 @else
@@ -95,7 +100,7 @@
     <li>
         <a href="{{ route('tenant.staff.index') }}" class="flex items-center py-2 px-4 text-white rounded-md" style="{{ $hoverStyle }} {{ request()->routeIs('tenant.staff.*') ? $activeStyle : '' }}" onmouseover="this.style.backgroundColor='{{ $colors['hover'] }}'" onmouseout="this.style.backgroundColor='{{ request()->routeIs('tenant.staff.*') ? $colors['hover'] : 'transparent' }}'">
             <i class="fas fa-users-cog mr-3"></i>
-            <span>Staff Management</span>
+            <span>User Management</span>
         </a>
     </li>
     <li>

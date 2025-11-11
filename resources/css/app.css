@@ -9,3 +9,32 @@
 .animate-fade-in {
     animation: fade-in 0.8s ease-out both;
 }
+
+@keyframes float-1 {
+    0%, 100% { transform: translateY(0px) translateX(0px); }
+    25% { transform: translateY(-8px) translateX(4px); }
+    50% { transform: translateY(12px) translateX(-2px); }
+    75% { transform: translateY(-4px) translateX(-6px); }
+}
+.animate-float-1 {
+    animation: float-1 4.5s ease-in-out infinite;
+}
+
+@keyframes float-2 {
+    0%, 100% { transform: translateY(0px) translateX(0px); }
+    25% { transform: translateY(8px) translateX(-3px); }
+    50% { transform: translateY(-12px) translateX(5px); }
+    75% { transform: translateY(4px) translateX(7px); }
+}
+.animate-float-2 {
+    animation: float-2 3.5s ease-in-out infinite;
+}
+
+@keyframes float-3 {
+    0%, 100% { transform: translateY(0px) translateX(0px) scale(1); }
+    33% { transform: translateY(-6px) translateX(3px) scale(1.05); }
+    66% { transform: translateY(8px) translateX(-4px) scale(0.95); }
+}
+.animate-float-3 {
+    animation: float-3 5.2s ease-in-out infinite;
+}

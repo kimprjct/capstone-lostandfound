@@ -18,6 +18,9 @@ class CreateClaimsTable extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('found_item_id')->constrained()->onDelete('cascade');
             $table->text('claim_reason');
+            $table->string('photo')->nullable(); // New field
+            $table->date('claim_date')->nullable(); // New field
+            $table->string('location')->nullable(); // New field
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->timestamp('resolved_at')->nullable();
             $table->foreignId('resolved_by')->nullable()->constrained('users')->onDelete('set null');

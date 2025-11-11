@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.tenantApp')
 
 @section('title', 'Dashboard')
 
@@ -48,21 +48,21 @@
         <p class="text-sm text-gray-600">Claims awaiting review</p>
     </div>
 
-    <!-- Staff Stats -->
+    <!-- Unclaimed Items Stats -->
     <div class="bg-white rounded-lg shadow-md p-6">
         <div class="flex items-center mb-4">
             <div class="p-3 rounded-full bg-blue-100 mr-4">
-                <i class="fas fa-users text-blue-500 text-xl"></i>
+                <i class="fas fa-exclamation-circle text-blue-500 text-xl"></i>
             </div>
             <div>
-                <p class="text-gray-500 text-sm">Staff</p>
-                <h3 class="font-bold text-2xl">{{ $staffCount }}</h3>
+                <p class="text-gray-500 text-sm">Unclaimed Items</p>
+                <h3 class="font-bold text-2xl">{{ $unclaimedItemsCount }}</h3>
             </div>
         </div>
-        <p class="text-sm text-gray-600">Total staff members</p>
+        <p class="text-sm text-gray-600">Total items not yet claimed</p>
     </div>
 </div>
-
+ 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Recent Lost Items -->
     <div class="bg-white rounded-lg shadow-md p-6">
@@ -75,7 +75,7 @@
                             <th class="text-left py-2">Item</th>
                             <th class="text-left py-2">Location</th>
                             <th class="text-left py-2">Date</th>
-                            <th class="text-left py-2">Status</th>
+                            <th class="text-left py-2">Reported By</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -85,12 +85,14 @@
                                 <td class="py-2">{{ $item->location ?? 'Unknown' }}</td>
                                 <td class="py-2">{{ $item->date_lost ? $item->date_lost->format('M d, Y') : 'Unknown Date' }}</td>
                                 <td class="py-2">
-                                    <span class="px-2 py-1 rounded-full text-xs {{
-                                        $item->status == 'reported' ? 'bg-yellow-100 text-yellow-800' :
-                                        ($item->status == 'found' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800')
-                                    }}">
-                                        {{ ucfirst($item->status) }}
-                                    </span>
+                                    @if($item->user)
+                                        <a href="{{ route('tenant.staff.show', $item->user_id) }}" class="text-indigo-600 hover:underline">
+                                            {{ $item->user->first_name }} {{ $item->user->last_name }}
+                                        </a>
+                                        <div class="text-xs text-gray-500">{{ $item->user->email }}</div>
+                                    @else
+                                        Unknown Reporter
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach
@@ -116,7 +118,7 @@
                             <th class="text-left py-2">Item</th>
                             <th class="text-left py-2">Location</th>
                             <th class="text-left py-2">Date</th>
-                            <th class="text-left py-2">Status</th>
+                            <th class="text-left py-2">Reported By</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -126,12 +128,14 @@
                                 <td class="py-2">{{ $item->location ?? 'Unknown' }}</td>
                                 <td class="py-2">{{ $item->date_found ? $item->date_found->format('M d, Y') : 'Unknown Date' }}</td>
                                 <td class="py-2">
-                                    <span class="px-2 py-1 rounded-full text-xs {{
-                                        $item->status == 'found' ? 'bg-green-100 text-green-800' :
-                                        ($item->status == 'claimed' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800')
-                                    }}">
-                                        {{ ucfirst($item->status) }}
-                                    </span>
+                                    @if($item->user)
+                                        <a href="{{ route('tenant.staff.show', $item->user_id) }}" class="text-indigo-600 hover:underline">
+                                            {{ $item->user->first_name }} {{ $item->user->last_name }}
+                                        </a>
+                                        <div class="text-xs text-gray-500">{{ $item->user->email }}</div>
+                                    @else
+                                        Unknown Reporter
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach
@@ -147,9 +151,9 @@
     </div>
 </div>
 
-<!-- Recent Claims -->
+<!-- Recent Approved Claims -->
 <div class="bg-white rounded-lg shadow-md p-6 mt-6">
-    <h3 class="font-bold text-lg mb-4">Recent Claims</h3>
+    <h3 class="font-bold text-lg mb-4">Recent Approved Claims</h3>
     @if(count($recentClaims) > 0)
         <div class="overflow-x-auto">
             <table class="min-w-full">
@@ -165,8 +169,27 @@
                 <tbody>
                     @foreach($recentClaims as $claim)
                         <tr class="border-b hover:bg-gray-50">
-                            <td class="py-2">{{ $claim->foundItem ? $claim->foundItem->title : 'Unknown Item' }}</td>
-                            <td class="py-2">{{ $claim->user ? ($claim->user->first_name . ' ' . $claim->user->last_name) : 'Unknown User' }}</td>
+                            <td class="py-2">
+                                @if($claim->foundItem)
+                                    {{ $claim->foundItem->title }}
+                                    <span class="text-xs text-green-600 ml-1">(Found Item)</span>
+                                @elseif($claim->lostItem)
+                                    {{ $claim->lostItem->title }}
+                                    <span class="text-xs text-red-600 ml-1">(Lost Item)</span>
+                                @else
+                                    Unknown Item
+                                @endif
+                            </td>
+                            <td class="py-2">
+                                @if($claim->user)
+                                    <a href="{{ route('tenant.staff.show', $claim->user_id) }}" class="text-indigo-600 hover:underline">
+                                        {{ $claim->user->first_name }} {{ $claim->user->last_name }}
+                                    </a>
+                                    <div class="text-xs text-gray-500">{{ $claim->user->email }}</div>
+                                @else
+                                    Unknown User
+                                @endif
+                            </td>
                             <td class="py-2">{{ $claim->created_at ? $claim->created_at->format('M d, Y') : 'Unknown Date' }}</td>
                             <td class="py-2">
                                 <span class="px-2 py-1 rounded-full text-xs {{
@@ -192,7 +215,7 @@
             <a href="{{ route('tenant.claims.index') }}" class="text-indigo-600 hover:text-indigo-800 text-sm">View all claims →</a>
         </div>
     @else
-        <p class="text-gray-500">No claims submitted yet.</p>
+        <p class="text-gray-500">No approved claims yet.</p>
     @endif
 </div>
 @endsection

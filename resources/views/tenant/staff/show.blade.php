@@ -1,100 +1,178 @@
-@extends('layouts.app')
+@extends('layouts.tenantApp')
 
-@section('title', 'Staff Details')
-
-@section('page-title', 'Staff Details')
+@section('title', $user->first_name . ' ' . $user->last_name)
 
 @section('content')
-<div class="mb-6 flex justify-between">
-    <a href="{{ route('tenant.staff.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150">
-        <i class="fas fa-arrow-left mr-2"></i> {{ __('Back to Staff List') }}
-    </a>
-    
-    <div>
-        <a href="{{ route('tenant.staff.edit', $user ? $user->id : 0) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150 mr-2">
-            <i class="fas fa-edit mr-2"></i> {{ __('Edit Staff') }}
-        </a>
-        
-        <form action="{{ route('tenant.staff.destroy', $user ? $user->id : 0) }}" method="POST" class="inline" id="delete-staff-form">
-            @csrf
-            @method('DELETE')
-            <button type="button" onclick="confirmDelete()" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-900 focus:outline-none focus:border-red-900 focus:ring ring-red-300 disabled:opacity-25 transition ease-in-out duration-150">
-                <i class="fas fa-trash-alt mr-2"></i> {{ __('Delete Staff') }}
-            </button>
-        </form>
-    </div>
-</div>
+<div class="space-y-8">
 
-@if(session('success'))
-    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
-        <p class="font-bold">Success</p>
-        <p>{{ session('success') }}</p>
+    {{-- User Info --}}
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold mb-4">{{ $user->first_name }} {{ $user->last_name }}</h2>
+        <p class="text-gray-600"><strong>Email:</strong> {{ $user->email }}</p>
+        <p class="text-gray-600"><strong>Phone:</strong> {{ $user->phone_number }}</p>
+        <p class="text-gray-600"><strong>Address:</strong> {{ $user->address }}</p>
     </div>
-@endif
 
-@if(session('error'))
-    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-        <p class="font-bold">Error</p>
-        <p>{{ session('error') }}</p>
+    {{-- Lost Items Reported --}}
+    <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+        <h3 class="text-lg font-bold mb-4">Lost Items Reported</h3>
+
+        @if($user->lostItems->count() > 0)
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                @foreach($user->lostItems as $item)
+                    <div class="border rounded-lg shadow hover:shadow-md transition duration-200 bg-white overflow-hidden">
+                        {{-- Image --}}
+                        <div class="h-40 bg-gray-100 flex items-center justify-center overflow-hidden">
+                            @if($item->image_url)
+                                <img src="{{ $item->image_url }}"
+                                     alt="{{ $item->title }}"
+                                     class="h-full w-full object-cover">
+                            @else
+                                <span class="text-gray-400">No Image</span>
+                            @endif
+                        </div>
+
+                        {{-- Details --}}
+                        <div class="p-4">
+                            <h4 class="text-lg font-semibold truncate">{{ $item->title }}</h4>
+                            <p class="text-sm text-gray-500">
+                                Reported on {{ $item->created_at->format('M d, Y') }}
+                            </p>
+                            <p class="text-sm text-gray-600 mt-2">
+                                Status: 
+                                <span class="font-medium {{ $item->status === 'claimed' ? 'text-green-600' : 'text-orange-600' }}">
+                                    {{ ucfirst($item->status) }}
+                                </span>
+                            </p>
+                            <a href="{{ route('tenant.lost-items.show', $item->id) }}"
+                               class="mt-3 inline-block text-sm text-blue-600 hover:underline">
+                                View Details →
+                            </a>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <p class="text-gray-500">No lost items reported in this organization.</p>
+        @endif
     </div>
-@endif
 
-<div class="bg-white rounded-lg shadow-md p-6">
-    <h3 class="text-lg font-bold mb-6">{{ __('Staff Member Information') }}</h3>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-            <h4 class="text-md font-semibold mb-4 border-b pb-2">Personal Information</h4>
-            
-            <div class="mb-4">
-                <p class="text-sm font-medium text-gray-600">Name</p>
-                <p class="text-base">{{ $user->first_name ?? '' }} {{ $user->middle_name ?? '' }} {{ $user->last_name ?? '' }}</p>
+    {{-- Found Items Reported --}}
+    <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+        <h3 class="text-lg font-bold mb-4">Found Items Reported</h3>
+
+        @if($user->foundItems->count() > 0)
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                @foreach($user->foundItems as $item)
+                    <div class="border rounded-lg shadow hover:shadow-md transition duration-200 bg-white overflow-hidden">
+                        {{-- Image --}}
+                        <div class="h-40 bg-gray-100 flex items-center justify-center overflow-hidden">
+                            @if($item->image_url)
+                                <img src="{{ $item->image_url }}"
+                                     alt="{{ $item->title }}"
+                                     class="h-full w-full object-cover">
+                            @else
+                                <span class="text-gray-400">No Image</span>
+                            @endif
+                        </div>
+
+                        {{-- Details --}}
+                        <div class="p-4">
+                            <h4 class="text-lg font-semibold truncate">{{ $item->title }}</h4>
+                            <p class="text-sm text-gray-500">
+                                Reported on {{ $item->created_at->format('M d, Y') }}
+                            </p>
+                            <p class="text-sm text-gray-600 mt-2">
+                                Status: 
+                                <span class="font-medium {{ $item->status === 'claimed' ? 'text-green-600' : 'text-orange-600' }}">
+                                    {{ ucfirst($item->status) }}
+                                </span>
+                            </p>
+                            <a href="{{ route('tenant.found-items.show', $item->id) }}"
+                               class="mt-3 inline-block text-sm text-blue-600 hover:underline">
+                                View Details →
+                            </a>
+                        </div>
+                    </div>
+                @endforeach
             </div>
-            
-            <div class="mb-4">
-                <p class="text-sm font-medium text-gray-600">Email</p>
-                <p class="text-base">{{ $user->email ?? 'N/A' }}</p>
+        @else
+            <p class="text-gray-500">No found items reported in this organization.</p>
+        @endif
+    </div>
+
+    {{-- Claim Requests --}}
+    <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+        <h3 class="text-lg font-bold mb-4">Claim Requests</h3>
+
+        @if($user->claims->count() > 0)
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                @foreach($user->claims as $claim)
+                    @php
+                        $claimedItem = $claim->lostItem ?? $claim->foundItem;
+                    @endphp
+
+                    <div class="border rounded-lg shadow hover:shadow-md transition duration-200 bg-white overflow-hidden">
+
+                        {{-- Image --}}
+                        <div class="h-40 bg-gray-100 flex items-center justify-center overflow-hidden">
+                            @if($claimedItem && $claimedItem->image_url)
+                                <img src="{{ $claimedItem->image_url }}"
+                                     alt="{{ $claimedItem->title ?? 'Item' }}"
+                                     class="h-full w-full object-cover">
+                            @else
+                                <span class="text-gray-400">No Image</span>
+                            @endif
+                        </div>
+
+                        {{-- Details --}}
+                        <div class="p-4">
+                            <h4 class="text-lg font-semibold truncate">
+                                {{ $claimedItem->title ?? 'Unknown Item' }}
+                            </h4>
+
+                            <p class="text-sm text-gray-600">
+                                Reported by:
+                                <span class="font-medium">
+                                    {{ $claimedItem && $claimedItem->user
+                                        ? $claimedItem->user->first_name . ' ' . $claimedItem->user->last_name
+                                        : 'Unknown Reporter' }}
+                                </span>
+                            </p>
+
+                            <p class="text-sm text-gray-500">
+                                Requested on {{ $claim->created_at->format('M d, Y') }}
+                            </p>
+
+                            <p class="text-sm text-gray-600 mt-2">
+                                Status: 
+                                <span class="font-medium {{ $claim->status === 'approved' ? 'text-green-600' : ($claim->status === 'rejected' ? 'text-red-600' : 'text-orange-600') }}">
+                                    {{ ucfirst($claim->status) }}
+                                </span>
+                            </p>
+
+                            @if($claimedItem)
+                                @if($claim->lostItem)
+                                    <a href="{{ route('tenant.lost-items.show', $claimedItem->id) }}"
+                                       class="mt-3 inline-block text-sm text-blue-600 hover:underline">
+                                        View Lost Item →
+                                    </a>
+                                @elseif($claim->foundItem)
+                                    <a href="{{ route('tenant.found-items.show', $claimedItem->id) }}"
+                                       class="mt-3 inline-block text-sm text-blue-600 hover:underline">
+                                        View Found Item →
+                                    </a>
+                                @endif
+                            @else
+                                <p class="text-xs text-red-500 mt-2">This item no longer exists.</p>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
             </div>
-            
-            <div class="mb-4">
-                <p class="text-sm font-medium text-gray-600">Phone Number</p>
-                <p class="text-base">{{ $user->phone_number ?? 'N/A' }}</p>
-            </div>
-            
-            <div class="mb-4">
-                <p class="text-sm font-medium text-gray-600">Address</p>
-                <p class="text-base">{{ $user->address ?? 'N/A' }}</p>
-            </div>
-        </div>
-        
-        <div>
-            <h4 class="text-md font-semibold mb-4 border-b pb-2">Account Information</h4>
-            
-            <div class="mb-4">
-                <p class="text-sm font-medium text-gray-600">Role</p>
-                <p class="text-base capitalize">{{ $user->role ?? 'N/A' }}</p>
-            </div>
-            
-            <div class="mb-4">
-                <p class="text-sm font-medium text-gray-600">Member Since</p>
-                <p class="text-base">{{ $user->created_at ? $user->created_at->format('F d, Y') : 'N/A' }}</p>
-            </div>
-            
-            <div class="mb-4">
-                <p class="text-sm font-medium text-gray-600">Last Updated</p>
-                <p class="text-base">{{ $user->updated_at ? $user->updated_at->format('F d, Y') : 'N/A' }}</p>
-            </div>
-        </div>
+        @else
+            <p class="text-gray-500">No claim requests in this organization.</p>
+        @endif
     </div>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-    function confirmDelete() {
-        if (confirm('Are you sure you want to delete this staff member? This action cannot be undone.')) {
-            document.getElementById('delete-staff-form').submit();
-        }
-    }
-</script>
-@endpush

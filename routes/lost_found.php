@@ -62,9 +62,11 @@ Route::middleware(['auth', 'role:tenant'])->name('tenant.')->group(function () {
     
     // Lost Items Management
     Route::resource('tenant/lost-items', TenantLostItemController::class);
+    Route::post('tenant/lost-items/{id}/auto-match', [TenantLostItemController::class, 'autoMatch'])->name('lost-items.auto-match');
     
     // Found Items Management
     Route::resource('tenant/found-items', TenantFoundItemController::class);
+    Route::post('tenant/found-items/{id}/auto-match', [TenantFoundItemController::class, 'autoMatch'])->name('found-items.auto-match');
     
     // Claims Management
     Route::resource('tenant/claims', TenantClaimController::class);

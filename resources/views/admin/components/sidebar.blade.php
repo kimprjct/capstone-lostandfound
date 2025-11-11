@@ -472,6 +472,11 @@
             <header class="header">
                 <h1 class="page-title">@yield('header')</h1>
                 <div class="user-menu">
+                    <!-- Notification Bell -->
+                    <div class="notification-bell-container" style="margin-right: 15px;">
+                        @include('components.notification-bell')
+                    </div>
+                    
                     <button class="theme-toggle" id="themeToggle" title="Toggle dark mode">🌓</button>
                     <div class="user-info">
                         <div class="user-name">{{ auth()->user()->name }}</div>

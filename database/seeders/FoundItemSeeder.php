@@ -32,7 +32,7 @@ class FoundItemSeeder extends Seeder
             // Create 5 found items for each organization
             $categories = ['Electronics', 'Clothing', 'Accessories', 'Documents', 'Keys', 'Other'];
             $locations = ['Library', 'Cafeteria', 'Classroom 101', 'Main Hall', 'Parking Lot', 'Reception', 'Lobby'];
-            $statuses = ['found', 'claimed', 'archived'];
+            $statuses = ['unclaimed', 'under_review', 'claimed', 'cancelled'];
             
             for ($i = 1; $i <= 5; $i++) {
                 $user = $staffUsers->random();

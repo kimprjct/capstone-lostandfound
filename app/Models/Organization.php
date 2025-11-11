@@ -15,7 +15,8 @@ class Organization extends Model
         'logo',
         'color_theme',
         'sidebar_bg',
-  
+        'claim_location',
+        'office_hours',
     ];
 
     // If you want the API to include the logo_url attribute

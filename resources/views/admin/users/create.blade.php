@@ -16,7 +16,7 @@
                     <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
                     <select name="role" id="role" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" required>
                         <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                        <option value="tenant" {{ old('role') == 'tenant' ? 'selected' : (old('role') ? '' : 'selected') }}>Tenant Staff</option>
+                        <option value="tenant" {{ old('role') == 'tenant' ? 'selected' : (old('role') ? '' : 'selected') }}>Tenant</option>
                         <option value="user" {{ old('role') == 'user' ? 'selected' : '' }}>End User</option>
                     </select>
                     @error('role')

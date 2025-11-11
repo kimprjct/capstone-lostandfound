@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\ClinicInfo;
+use App\Models\Organization;
 use Illuminate\Support\Facades\Storage;
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -39,100 +39,86 @@ class AdminController extends Controller
         return view('admin.settings', compact('admin'));
     }
 
-    // Update admin account details
-    public function updateSettings(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . Auth::id(),
-            'password' => 'nullable|min:6|confirmed', // password_confirmation field required
-        ]);
-
-        $admin = Auth::user();
-        $admin->name = $request->name;
-        $admin->email = $request->email;
-
-        if ($request->filled('password')) {
-            $admin->password = Hash::make($request->password);
-        }
-
-        $admin->save();
-
-        return redirect()->back()->with('success', 'Settings updated successfully.');
-    }
-    // Show all registered clinics
-public function clinicList()
-{
-    $clinics = ClinicInfo::with('user')->get(); // eager load related user info
-    return view('admin.clinics.list', compact('clinics'));
-}
-
-// View a specific clinic by ID
-public function viewClinic($id)
-{
-    $clinic = ClinicInfo::with('user')->findOrFail($id);
-    return view('admin.clinics.view', compact('clinic'));
-}
-// public function updateClinicPassword(Request $request, $id)
-// {
-//     $request->validate([
-//         'password' => 'required|string|min:6|confirmed',
-//     ]);
-
-//     $user = User::findOrFail($id);
-
-//     if ($user->role !== 'clinic') {
-//         return redirect()->back()->withErrors(['error' => 'This user is not a clinic account.']);
-//     }
-
-//     $user->password = Hash::make($request->password);
-//     $user->save();
-
-//     return redirect()->back()->with('password_updated', 'Clinic account password updated successfully.');
-// }
-
-public function updateClinicDetails(Request $request, $id)
+// Update admin account details
+public function updateSettings(Request $request)
 {
     $request->validate([
-        'clinic_name' => 'required|string|max:255',
-        'address' => 'required|string|max:255',
-        'contact_number' => 'required|string|max:20',
-        'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-        'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        'first_name' => 'required|string|max:255',
+        'last_name' => 'required|string|max:255',
+        'email' => 'required|email|max:255|unique:users,email,' . Auth::id(),
+        'password' => 'nullable|min:6|confirmed', // password_confirmation field required
     ]);
 
-    $clinic = ClinicInfo::findOrFail($id);
+    /** @var User $admin */
+    $admin = Auth::user();
+    $admin->first_name = $request->first_name;
+    $admin->last_name = $request->last_name;
+    $admin->email = $request->email;
 
-    $clinic->clinic_name = $request->clinic_name;
-    $clinic->address = $request->address;
-    $clinic->contact_number = $request->contact_number;
-
-
-    if ($request->hasFile('profile_picture')) {
-        if ($clinic->profile_picture) Storage::delete('public/' . $clinic->profile_picture);
-        $clinic->profile_picture = $request->file('profile_picture')->store('profile_pictures', 'public');
+    if ($request->filled('password')) {
+        $admin->password = Hash::make($request->password);
     }
 
-    $clinic->save();
+    $admin->save();
 
-    return back()->with('success', 'Clinic details updated successfully.');
+    return redirect()->back()->with('success', 'Settings updated successfully.');
+}
+    // Show all registered organizations
+public function organizationList()
+{
+    $organizations = Organization::with('users')->get(); // eager load related user info
+    return view('admin.organizations.list', compact('organizations'));
 }
 
-public function updateClinicAccount(Request $request, $userId)
+// View a specific organization by ID
+public function viewOrganization($id)
 {
+    $organization = Organization::with('users')->findOrFail($id);
+    return view('admin.organizations.view', compact('organization'));
+}
+
+public function updateOrganizationDetails(Request $request, $id)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'address' => 'required|string|max:255',
+        'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+    ]);
+
+    /** @var Organization $organization */
+    $organization = Organization::findOrFail($id);
+
+    $organization->name = $request->name;
+    $organization->address = $request->address;
+
+    if ($request->hasFile('logo')) {
+        if ($organization->logo) Storage::delete('public/' . $organization->logo);
+        $organization->logo = $request->file('logo')->store('organization_logos', 'public');
+    }
+
+    $organization->save();
+
+    return back()->with('success', 'Organization details updated successfully.');
+}
+
+public function updateOrganizationAccount(Request $request, $userId)
+{
+    /** @var User $user */
     $user = User::findOrFail($userId);
 
-    if ($user->role !== 'clinic') {
-        return redirect()->back()->withErrors(['error' => 'This user is not a clinic account.']);
+    if ($user->role !== 'tenant') {
+        return redirect()->back()->withErrors(['error' => 'This user is not a tenant account.']);
     }
 
     $request->validate([
-        'name' => 'required|string|max:255',
+        'first_name' => 'required|string|max:255',
+        'last_name' => 'required|string|max:255',
         'email' => 'required|email|max:255|unique:users,email,' . $userId,
         'password' => 'nullable|min:6|confirmed',
     ]);
 
-    $user->name = $request->name;
+    $user->first_name = $request->first_name;
+    $user->last_name = $request->last_name;
     $user->email = $request->email;
 
     if ($request->filled('password')) {
@@ -141,14 +127,14 @@ public function updateClinicAccount(Request $request, $userId)
 
     $user->save();
 
-    return back()->with('success', 'Clinic account updated successfully.');
+    return back()->with('success', 'Organization account updated successfully.');
 }
-public function downloadClinicInfo($id)
+public function downloadOrganizationInfo($id)
 {
-    $clinic = ClinicInfo::with('user')->findOrFail($id);
+    $organization = Organization::with('users')->findOrFail($id);
 
     // Render a Blade view to HTML
-    $html = view('admin.clinics.pdf', compact('clinic'))->render();
+    $html = view('admin.organizations.pdf', compact('organization'))->render();
 
     // DOMPDF setup
     $options = new Options();
@@ -162,7 +148,7 @@ public function downloadClinicInfo($id)
     // Output the PDF
     return response($dompdf->output(), 200)
         ->header('Content-Type', 'application/pdf')
-        ->header('Content-Disposition', 'attachment; filename="clinic_info.pdf"');
+        ->header('Content-Disposition', 'attachment; filename="organization_info.pdf"');
 }
 
 public function getUserStats($type)
@@ -174,7 +160,7 @@ public function getUserStats($type)
             ->orderBy('label')
             ->pluck('total', 'label');
 
-        $clinicStats = \App\Models\User::where('role', 'clinic')
+        $tenantStats = \App\Models\User::where('role', 'tenant')
             ->selectRaw('MONTH(created_at) as label, COUNT(*) as total')
             ->groupBy('label')
             ->orderBy('label')
@@ -190,7 +176,7 @@ public function getUserStats($type)
             ->orderBy('label')
             ->pluck('total', 'label');
 
-        $clinicStats = \App\Models\User::where('role', 'clinic')
+        $tenantStats = \App\Models\User::where('role', 'tenant')
             ->selectRaw('WEEK(created_at) as label, COUNT(*) as total')
             ->groupBy('label')
             ->orderBy('label')
@@ -202,16 +188,16 @@ public function getUserStats($type)
 
     // Normalize data (fill missing months/weeks with 0)
     $usersData = [];
-    $clinicsData = [];
+    $tenantsData = [];
     foreach ($labels as $i => $label) {
         $usersData[] = $userStats->get($i + 1, 0);
-        $clinicsData[] = $clinicStats->get($i + 1, 0);
+        $tenantsData[] = $tenantStats->get($i + 1, 0);
     }
 
     return response()->json([
         'labels' => $labels,
         'users' => $usersData,
-        'clinics' => $clinicsData,
+        'tenants' => $tenantsData,
     ]);
 }
 
@@ -238,15 +224,18 @@ public function editUser($id)
 // Update user
 public function updateUser(Request $request, $id)
 {
+    /** @var User $user */
     $user = User::findOrFail($id);
 
     $request->validate([
-        'name' => 'required|string|max:255',
+        'first_name' => 'required|string|max:255',
+        'last_name' => 'required|string|max:255',
         'email' => 'required|email|max:255|unique:users,email,' . $id,
         'password' => 'nullable|min:6|confirmed',
     ]);
 
-    $user->name = $request->name;
+    $user->first_name = $request->first_name;
+    $user->last_name = $request->last_name;
     $user->email = $request->email;
 
     if ($request->filled('password')) {

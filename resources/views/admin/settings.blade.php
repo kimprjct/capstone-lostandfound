@@ -7,7 +7,6 @@
 @section('content')
     <div class="bg-white shadow-md rounded-lg overflow-hidden max-w-2xl mx-auto">
         <div class="p-6">
-            <h2 class="text-xl font-semibold mb-6">Account Settings</h2>
             
             @if(session('success'))
                 <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">

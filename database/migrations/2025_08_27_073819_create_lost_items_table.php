@@ -23,7 +23,7 @@ class CreateLostItemsTable extends Migration
             $table->string('location');
             $table->date('date_lost');
             $table->string('image')->nullable();
-            $table->enum('status', ['reported', 'found', 'returned'])->default('reported');
+            $table->enum('status', ['lost', 'claimed', 'archived'])->default('lost');
             $table->timestamps();
         });
     }

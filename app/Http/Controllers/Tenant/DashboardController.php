@@ -18,53 +18,76 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        // Get count of lost and found items for this tenant's organization
         $user = auth()->user();
         if (!$user || !$user->organization_id) {
             return redirect()->route('login')
                 ->with('error', 'You must be associated with an organization to access this feature.');
         }
-        
+    
         $organizationId = $user->organization_id;
-        
+    
+        // Count Lost and Found Items
         $lostItemsCount = LostItem::where('organization_id', $organizationId)->count();
         $foundItemsCount = FoundItem::where('organization_id', $organizationId)->count();
-        
-        // Get claims related to found items belonging to this organization
+    
+        // Claims - Include both lost and found items
         $foundItemIds = FoundItem::where('organization_id', $organizationId)->pluck('id')->toArray();
-        $pendingClaimsCount = Claim::whereIn('found_item_id', $foundItemIds)
-            ->where('status', 'pending')
+        $lostItemIds = LostItem::where('organization_id', $organizationId)->pluck('id')->toArray();
+        
+        // Count pending claims for both found and lost items
+        $pendingClaimsCount = Claim::where(function($query) use ($foundItemIds, $lostItemIds) {
+            $query->whereIn('found_item_id', $foundItemIds)
+                  ->orWhereIn('lost_item_id', $lostItemIds);
+        })->where('status', 'pending')->count();
+    
+        // Unclaimed Lost Items
+            $unclaimedLost = \App\Models\LostItem::where('organization_id', $organizationId)
+            ->whereDoesntHave('claims', function ($query) {
+                $query->whereIn('status', ['pending', 'approved']);
+            })
             ->count();
-        $staffCount = User::where('organization_id', $organizationId)
-            ->where('role', 'user')
+
+            // Unclaimed Found Items
+            $unclaimedFound = \App\Models\FoundItem::where('organization_id', $organizationId)
+            ->whereDoesntHave('claims', function ($query) {
+                $query->whereIn('status', ['pending', 'approved']);
+            })
             ->count();
-            
-        // Get recent lost items
+
+            // ✅ Total Unclaimed Items
+            $unclaimedItemsCount = $unclaimedLost + $unclaimedFound;
+
+    
+    
+        // Recent Lost Items
         $recentLostItems = LostItem::where('organization_id', $organizationId)
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
-            
-        // Get recent found items
+    
+        // Recent Found Items
         $recentFoundItems = FoundItem::where('organization_id', $organizationId)
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
-            
-        // Get recent claims for found items in this organization
-        $recentClaims = Claim::whereIn('found_item_id', $foundItemIds)
+    
+        // Recent Claims - Show only approved claims
+        $recentClaims = Claim::where(function($query) use ($foundItemIds, $lostItemIds) {
+            $query->whereIn('found_item_id', $foundItemIds)
+                  ->orWhereIn('lost_item_id', $lostItemIds);
+        })->where('status', 'approved')
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
-        
+    
         return view('tenant.dashboard', compact(
-            'lostItemsCount', 
-            'foundItemsCount', 
-            'pendingClaimsCount', 
-            'staffCount',
+            'lostItemsCount',
+            'foundItemsCount',
+            'pendingClaimsCount',
             'recentLostItems',
             'recentFoundItems',
-            'recentClaims'
+            'recentClaims',
+            'unclaimedItemsCount' // 👈 Added here
         ));
     }
     
@@ -108,12 +131,16 @@ class DashboardController extends Controller
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'color_theme' => 'required|string|in:indigo,blue,green,red,purple,pink,yellow,gray',
             'sidebar_bg' => 'required|string|in:default,gradient,pattern-dots,pattern-lines,pattern-grid',
+            'claim_location' => 'nullable|string|max:255',
+            'office_hours' => 'nullable|string|max:255',
         ]);
         
         $organization->name = $validated['name'];
         $organization->address = $validated['address'];
         $organization->color_theme = $validated['color_theme'];
         $organization->sidebar_bg = $validated['sidebar_bg'];
+        $organization->claim_location = $validated['claim_location'];
+        $organization->office_hours = $validated['office_hours'];
         
         // Handle logo upload if provided
         if ($request->hasFile('logo')) {

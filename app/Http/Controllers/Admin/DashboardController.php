@@ -15,30 +15,34 @@ use Illuminate\Support\Facades\Hash;
 class DashboardController extends Controller
 {
     public function index()
-    {
-        // Get counts for dashboard
-        $organizationCount = Organization::count();
-        $userCount = User::count();
-        $lostItemsCount = LostItem::count();
-        $foundItemsCount = FoundItem::count();
-        $returnedItemsCount = LostItem::where('status', 'returned')->count();
-        
-        // Get recent organizations
-        $recentOrganizations = Organization::latest()->take(5)->get();
-        
-        // Get monthly statistics
-        $monthlyStats = $this->getMonthlyStats();
+{
+    // Get counts for dashboard
+    $organizationCount = Organization::count();
+    $userCount = User::count();
+    $lostItemsCount = LostItem::count();
+    $foundItemsCount = FoundItem::count();
+    $claimCount = Claim::count(); // ✅ Total claims made
+    $returnedItemsCount = LostItem::where('status', 'returned')->count();
+    
+    // Recent organizations
+    $recentOrganizations = Organization::latest()->take(5)->get();
+    
+    // Monthly stats
+    $monthlyStats = $this->getMonthlyStats();
+    $claimStats = $this->getClaimStats();
 
-        return view('admin.dashboard', compact(
-            'organizationCount', 
-            'userCount', 
-            'lostItemsCount', 
-            'foundItemsCount', 
-            'returnedItemsCount',
-            'recentOrganizations',
-            'monthlyStats'
-        ));
-    }
+    return view('admin.dashboard', compact(
+        'organizationCount', 
+        'userCount', 
+        'lostItemsCount', 
+        'foundItemsCount', 
+        'claimCount',
+        'returnedItemsCount',
+        'recentOrganizations',
+        'monthlyStats',
+        'claimStats'
+    ));
+}
     
     private function getMonthlyStats()
     {
@@ -103,4 +107,60 @@ class DashboardController extends Controller
         
         return back()->with('success', 'Profile updated successfully!');
     }
+
+    private function getClaimStats()
+{
+    $months = collect([]);
+    $claims = collect([]);
+
+    for ($i = 5; $i >= 0; $i--) {
+        $month = now()->subMonths($i)->format('M');
+        $monthStart = now()->subMonths($i)->startOfMonth();
+        $monthEnd = now()->subMonths($i)->endOfMonth();
+
+        $months->push($month);
+        $claims->push(Claim::whereBetween('created_at', [$monthStart, $monthEnd])->count());
+    }
+
+    return [
+        'months' => $months,
+        'claims' => $claims
+    ];
+}
+private function getWeeklyStats()
+{
+    $weeks = collect([]);
+    $lostItems = collect([]);
+    $foundItems = collect([]);
+    $returnedItems = collect([]);
+
+    // Last 6 weeks
+    for ($i = 5; $i >= 0; $i--) {
+        $weekStart = now()->subWeeks($i)->startOfWeek();
+        $weekEnd = now()->subWeeks($i)->endOfWeek();
+
+        $weeks->push("Week " . $weekStart->format('W')); // Example: Week 36
+
+        $lostItems->push(
+            LostItem::whereBetween('created_at', [$weekStart, $weekEnd])->count()
+        );
+        $foundItems->push(
+            FoundItem::whereBetween('created_at', [$weekStart, $weekEnd])->count()
+        );
+        $returnedItems->push(
+            LostItem::where('status', 'returned')
+                ->whereBetween('updated_at', [$weekStart, $weekEnd])
+                ->count()
+        );
+    }
+
+    return [
+        'weeks' => $weeks,
+        'lostItems' => $lostItems,
+        'foundItems' => $foundItems,
+        'returnedItems' => $returnedItems
+    ];
+}
+
+
 }

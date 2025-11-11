@@ -1,11 +1,9 @@
 <div class="px-4 py-4 mb-6" style="border-bottom: 1px solid rgba(255, 255, 255, 0.2);">
     <div class="flex flex-col items-center text-center">
         <div class="mb-3 bg-white rounded-full p-1 shadow-md flex items-center justify-center" style="width: 80px; height: 80px;">
-            <div class="text-2xl font-bold" style="color: #4338ca;">
-                LF
-            </div>
+            <img src="{{ asset('images/foundu-logo.png') }}" alt="FoundU Logo" class="w-16 h-16 object-contain rounded-full">
         </div>
-        <h3 class="text-lg font-semibold text-white">Lost & Found Admin</h3>
+        <h3 class="text-lg font-semibold text-white">FoundU Admin</h3>
     </div>
 </div>
 

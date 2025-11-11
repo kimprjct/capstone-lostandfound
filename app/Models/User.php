@@ -75,4 +75,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Claim::class, 'resolved_by');
     }
+
+    public function notifications()
+    {
+        return $this->morphMany(\App\Models\Notification::class, 'notifiable');
+    }
 }

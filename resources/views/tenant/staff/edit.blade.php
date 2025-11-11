@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.tenantApp')
 
 @section('title', 'Edit Staff Member')
 
@@ -64,16 +64,23 @@
                 <input id="address" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block w-full" type="text" name="address" value="{{ old('address', $user ? $user->address : '') }}" required />
             </div>
 
-            <!-- Password -->
+            <!-- Current Password (only if changing password) -->
             <div>
-                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">{{ __('Password') }}</label>
+                <label for="current_password" class="block text-sm font-medium text-gray-700 mb-1">{{ __('Current Password') }}</label>
+                <input id="current_password" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block w-full" type="password" name="current_password" autocomplete="current-password" />
+                <p class="text-sm text-gray-500 mt-1">Enter your current password to confirm changes</p>
+            </div>
+
+            <!-- New Password -->
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">{{ __('New Password') }}</label>
                 <input id="password" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block w-full" type="password" name="password" autocomplete="new-password" />
                 <p class="text-sm text-gray-500 mt-1">Leave blank to keep current password</p>
             </div>
 
-            <!-- Confirm Password -->
+            <!-- Confirm New Password -->
             <div>
-                <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">{{ __('Confirm Password') }}</label>
+                <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">{{ __('Confirm New Password') }}</label>
                 <input id="password_confirmation" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block w-full" type="password" name="password_confirmation" />
             </div>
         </div>
@@ -83,7 +90,7 @@
                 <i class="fas fa-arrow-left mr-2"></i> {{ __('Cancel') }}
             </a>
             <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
-                <i class="fas fa-save mr-2"></i> {{ __('Update Staff Member') }}
+                <i class="fas fa-save mr-2"></i> {{ __('Update Account') }}
             </button>
         </div>
     </form>

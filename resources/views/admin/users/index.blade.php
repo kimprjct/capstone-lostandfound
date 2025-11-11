@@ -6,9 +6,9 @@
 
 @section('content')
     <div class="mb-6 flex justify-between items-center">
-        <h2 class="text-2xl font-bold">Users</h2>
+        <h2 class="text-2xl font-bold"></h2>
         <a href="{{ route('admin.users.create') }}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-            <i class="fas fa-user-plus mr-2"></i> Create Staff Account
+            <i class="fas fa-user-plus mr-2"></i> Create Tenant
         </a>
     </div>
 
@@ -22,7 +22,7 @@
                     Admins
                 </a>
                 <a href="{{ route('admin.users.index', ['role' => 'tenant']) }}" class="px-3 py-1 rounded {{ request('role') === 'tenant' ? 'bg-blue-500 text-white' : 'bg-gray-200' }}">
-                    Tenant Staff
+                    Tenants
                 </a>
                 <a href="{{ route('admin.users.index', ['role' => 'user']) }}" class="px-3 py-1 rounded {{ request('role') === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200' }}">
                     End Users

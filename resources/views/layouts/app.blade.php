@@ -56,7 +56,7 @@
                     $sidebarStyle = "background-color: {$baseColor}; background-image: linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px), linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px); background-size: 20px 20px;";
                 }
             @endphp
-            <div class="w-64 text-white fixed h-full" style="{{ $sidebarStyle }}">
+            <div class="w-64 text-white fixed h-full" style="<?php echo $sidebarStyle; ?>">
                 <div class="p-4">
                     @if(auth()->user()->role === 'admin')
                         @include('layouts.sidebar.admin')
@@ -86,6 +86,12 @@
                                     <i class="fas fa-building mr-1"></i> Organizations
                                 </a>
                             </div>
+                            
+                            <!-- Notification Bell -->
+                            <div class="mr-4">
+                                @include('components.notification-bell')
+                            </div>
+                            
                             <div class="mr-4">
                                 <span class="text-sm text-gray-700">{{ auth()->user()->first_name }} {{ auth()->user()->last_name }}</span>
                             </div>

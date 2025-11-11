@@ -1,98 +1,148 @@
-<x-app-layout>
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 bg-white border-b border-gray-200">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-bold text-gray-800">Found Items</h2>
-                        <a href="{{ route('tenant.found-items.create') }}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
-                            <i class="fas fa-plus mr-2"></i>Add Found Item
-                        </a>
-                    </div>
+@extends('layouts.tenantApp')
 
-                    @if(session('success'))
-                        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
-                            <p>{{ session('success') }}</p>
-                        </div>
-                    @endif
+@section('title', 'Found Items')
+@section('page-title', 'Found Items')
 
-                    <div class="overflow-x-auto">
-                        @if($foundItems->count() > 0)
-                        <table class="min-w-full bg-white border border-gray-200">
-                            <thead>
-                                <tr>
-                                    <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
-                                    <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                                    <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                                    <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                                    <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Found</th>
-                                    <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                @foreach($foundItems as $item)
-                                <tr>
-                                    <td class="py-4 px-4 whitespace-nowrap">
-                                        @if($item->image)
-                                            <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->title }}" class="h-16 w-16 object-cover rounded">
-                                        @else
-                                            <div class="h-16 w-16 bg-gray-100 flex items-center justify-center rounded">
-                                                <i class="fas fa-image text-gray-400 text-2xl"></i>
-                                            </div>
-                                        @endif
-                                    </td>
-                                    <td class="py-4 px-4 whitespace-nowrap">{{ $item->title }}</td>
-                                    <td class="py-4 px-4 whitespace-nowrap">{{ $item->category }}</td>
-                                    <td class="py-4 px-4 whitespace-nowrap">{{ $item->location }}</td>
-                                    <td class="py-4 px-4 whitespace-nowrap">{{ $item->date_found->format('M d, Y') }}</td>
-                                    <td class="py-4 px-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                            {{ $item->status === 'found' ? 'bg-green-100 text-green-800' : '' }}
-                                            {{ $item->status === 'claimed' ? 'bg-blue-100 text-blue-800' : '' }}
-                                            {{ $item->status === 'archived' ? 'bg-gray-100 text-gray-800' : '' }}
-                                        ">
-                                            {{ ucfirst($item->status) }}
-                                        </span>
-                                    </td>
-                                    <td class="py-4 px-4 whitespace-nowrap text-sm font-medium">
-                                        <div class="flex space-x-2">
-                                            <a href="{{ route('tenant.found-items.show', $item->id) }}" class="text-blue-600 hover:text-blue-900" title="View Details">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{{ route('tenant.found-items.edit', $item->id) }}" class="text-yellow-600 hover:text-yellow-900" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <form action="{{ route('tenant.found-items.destroy', $item->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this item?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-900" title="Delete">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+@section('content')
+<div class="mb-6 flex justify-between items-center">
+    <h3 class="text-lg font-semibold">Found Items</h3>
 
-                        <div class="mt-4">
-                            {{ $foundItems->links() }}
-                        </div>
-                        @else
-                        <div class="text-center py-8">
-                            <i class="fas fa-search text-gray-400 text-5xl mb-4"></i>
-                            <p class="text-gray-500 text-xl">No found items reported yet</p>
-                            <p class="text-gray-400 mt-1">Found items reported by your organization members will appear here.</p>
-                            <a href="{{ route('tenant.found-items.create') }}" class="mt-4 inline-block px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
-                                <i class="fas fa-plus mr-2"></i>Add First Item
-                            </a>
-                        </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Search Form -->
+    <form action="{{ route('tenant.found-items.index') }}" method="GET" class="flex space-x-2">
+        <input type="text" name="search" placeholder="Search by keywords..."
+               value="{{ request('search') }}"
+               class="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1 rounded-md text-sm font-medium">
+            Search
+        </button>
+    </form>
+
+    <div class="flex space-x-2">
+        <a href="{{ route('tenant.found-items.print') }}" 
+           class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm hover:shadow-md transition-shadow"
+           title="Download PDF of unclaimed found items for bulletin board">
+            <i class="fas fa-file-pdf mr-1"></i> Download PDF
+        </a>
+        <a href="{{ route('tenant.found-items.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm hover:shadow-md transition-shadow">
+            <i class="fas fa-plus mr-1"></i> Add New Found Item
+        </a>
     </div>
-</x-app-layout>
+</div>
+
+@if(session('success'))
+<div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+    <p class="font-bold">Success</p>
+    <p>{{ session('success') }}</p>
+</div>
+@endif
+
+@if(session('error'))
+<div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+    <p class="font-bold">Error</p>
+    <p>{{ session('error') }}</p>
+</div>
+@endif
+
+<div class="bg-white rounded-lg shadow-md overflow-hidden">
+    @if(isset($foundItems) && count($foundItems) > 0)
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 180px;">Picture</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Found</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posted By</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @foreach($foundItems as $item)
+                    <tr>
+                        <!-- Image -->
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @if($item->image_url)
+                                <img src="{{ $item->image_url }}" 
+                                     alt="{{ $item->title }}" 
+                                     class="h-24 w-24 object-cover rounded-md border border-gray-200 shadow-sm">
+                            @else
+                                <div class="h-24 w-24 flex items-center justify-center bg-gray-200 text-gray-400 rounded-md border border-gray-200 text-sm">
+                                    No Image
+                                </div>
+                            @endif
+                        </td>
+
+                        <!-- Title -->
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {{ $item->title }}
+                        </td>
+
+                        <!-- Category -->
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ $item->category ?? 'N/A' }}
+                        </td>
+
+                        <!-- Location -->
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ $item->location ?? 'N/A' }}
+                        </td>
+
+                        <!-- Date Found -->
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ $item->date_found ? $item->date_found->format('F d, Y') : 'N/A' }}
+                        </td>
+
+                        <!-- Status -->
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @if($item->status === 'unclaimed')
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    Unclaimed
+                                </span>
+                            @elseif($item->status === 'under_review')
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    Under Review
+                                </span>
+                            @elseif($item->status === 'claimed')
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    Claimed
+                                </span>
+                            @elseif($item->status === 'cancelled')
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    Cancelled
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    {{ ucfirst($item->status) }}
+                                </span>
+                            @endif
+                        </td>
+
+                        <!-- Posted By -->
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            {{ $item->user?->first_name }} {{ $item->user?->last_name }}
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="{{ route('tenant.found-items.manage', $item->id) }}" 
+                               class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm hover:shadow-md transition-shadow">
+                                <i class="fas fa-cogs mr-1"></i> Manage
+                            </a>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+
+        <div class="px-6 py-4">
+            {{ $foundItems->links() }}
+        </div>
+    @else
+        <div class="px-6 py-4 text-center text-gray-500">
+            No found items recorded.
+        </div>
+    @endif
+</div>
+@endsection

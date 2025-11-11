@@ -14,10 +14,12 @@ class ProfileController extends Controller
         $user = $request->user();
 
         return response()->json([
-            'id'    => $user->id,
-            'name'  => $user->name,
-            'email' => $user->email,
-            'role'  => $user->role,
+            'id'         => $user->id,
+            'name'       => trim($user->first_name . ' ' . $user->last_name),
+            'first_name' => $user->first_name,
+            'last_name'  => $user->last_name,
+            'email'      => $user->email,
+            'role'       => $user->role,
         ]);
     }
 
@@ -26,12 +28,14 @@ class ProfileController extends Controller
         $user = $request->user();
 
         $validated = $request->validate([
-            'name'                  => ['required', 'string', 'max:255'],
+            'first_name'            => ['required', 'string', 'max:100'],
+            'last_name'             => ['required', 'string', 'max:100'],
             'email'                 => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password'              => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $user->name = $validated['name'];
+        $user->first_name = $validated['first_name'];
+        $user->last_name = $validated['last_name'];
         $user->email = $validated['email'];
 
         if (!empty($validated['password'])) {
@@ -43,7 +47,9 @@ class ProfileController extends Controller
         return response()->json([
             'message' => 'Profile updated',
             'id'      => $user->id,
-            'name'    => $user->name,
+            'name'    => trim($user->first_name . ' ' . $user->last_name),
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
             'email'   => $user->email,
             'role'    => $user->role,
         ]);
